@@ -6,8 +6,8 @@
 
 <p align="center">
   <a href="https://1eye.dpdns.org"><b>Website</b></a> ·
-  <a href="releases/1EYE-Windows-v1.5.zip"><b>Download for Windows</b></a> ·
-  <a href="releases/1EYE-Android-v1.5.apk"><b>Download for Android</b></a> ·
+  <a href="releases/1EYE-Windows-v1.6.zip"><b>Download for Windows</b></a> ·
+  <a href="releases/1EYE-Android-v1.6.apk"><b>Download for Android</b></a> ·
   <a href="releases/SHA256SUMS.txt">Checksums</a>
 </p>
 
@@ -20,7 +20,11 @@
 - **Links shelf**: one place for every URL you want open on another screen.
 - **Wi-Fi or anywhere**: instant on your local network. One click opens a secure HTTPS link that works from any network (Cloudflare, localhost.run or Pinggy, with automatic fallback). You can also point your own domain at it permanently.
 - **Your phone can be the host**: the Android app runs the same server. Share → 1EYE from any app drops files straight in.
-- **The look**: an interactive 3D particle eye, a glassy dark UI, and a layout that works on desktop and mobile.
+- **1EYE AI (Groq)**: ask about your files, chat and links, attach text files, or type `@eye` in chat. Bring your own free Groq key; it stays on the host and is never sent to devices. Model picker (GPT-OSS 120B / 20B or any Groq model ID).
+- **8 themes**: Void, Obsidian, Aurora, Ember, Ocean, Sakura, Terminal and Frost (light), with motion settings (Full 3D / Calm / Still), sounds and desktop notifications.
+- **The look**: an interactive 3D particle eye, a glassy minimal UI, and a layout that works on desktop and mobile.
+
+<p align="center"><img src="docs/screenshots/themes.png" alt="Eight themes" width="100%"></p>
 
 <p align="center"><img src="docs/screenshots/desktop-transfer.png" alt="1EYE desktop" width="72%"> <img src="docs/screenshots/phone-chat.png" alt="1EYE on a phone" width="24%"></p>
 
@@ -38,6 +42,9 @@
 - Host controls only answer on the host machine itself (loopback), never over Wi-Fi or a tunnel.
 - Internet traffic enters through a separate loopback-only entry point and is always treated as untrusted.
 - Cross-site requests are blocked (CSRF), and requests addressed to anything but `localhost` lose host powers (DNS rebinding).
+- Strict security headers (CSP, no-referrer, permissions policy), sandboxed previews for HTML/SVG/XML files, Secure cookies over HTTPS.
+- Internet sign-ins pause for 10 minutes after 20 wrong PINs, even if an attacker rotates IPs through a relay.
+- The AI key is stored only on the host (file mode 0600); devices only get AI if the host allows it, rate-limited to 20 requests a minute each.
 
 Found a problem? Please open an issue.
 

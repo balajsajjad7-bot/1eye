@@ -1,20 +1,32 @@
 /* 1EYE — logo + interactive 3D particle engine (no libraries) */
 const LOGO = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
-<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2d9ff"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#67e8f9"/></linearGradient>
-<radialGradient id="ir" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#c4b5fd"/><stop offset="1" stop-color="#7c5cff"/></radialGradient></defs>
+<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--v,#e2d9ff)"/><stop offset=".5" style="stop-color:var(--v2,#8b5cf6)"/><stop offset="1" style="stop-color:var(--c,#67e8f9)"/></linearGradient>
+<radialGradient id="ir" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".35" style="stop-color:var(--v,#c4b5fd)"/><stop offset="1" style="stop-color:var(--v2,#7c5cff)"/></radialGradient></defs>
 <g stroke="url(#lg)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
 <path d="M50 5 L72.6 46 H27.4 Z"/>
 <path d="M24.6 52 H75.4 L95 88 H5 Z"/>
 <path d="M14.5 70 H85.5 M30 52 V70 M50 70 V88 M70 52 V70" stroke-width="1.2" opacity=".45"/>
 <path d="M36.5 33 Q50 21.5 63.5 33 Q50 44.5 36.5 33 Z" stroke-width="2.2"/>
 </g>
-<circle cx="50" cy="33" r="5.4" fill="url(#ir)"/><circle cx="50" cy="33" r="2.3" fill="#07060c"/><circle cx="51.8" cy="31.3" r="1" fill="#fff"/>
+<circle cx="50" cy="33" r="5.4" fill="url(#ir)"/><circle cx="50" cy="33" r="2.3" style="fill:var(--bg,#07060c)"/><circle cx="51.8" cy="31.3" r="1" fill="#fff"/>
 </svg>`;
+
+const THEMES = {
+  void:     { name: "Void",     v: [167,139,250], c: [103,232,249], light: false },
+  obsidian: { name: "Obsidian", v: [235,235,240], c: [150,155,170], light: false },
+  aurora:   { name: "Aurora",   v: [52,211,153],  c: [125,211,252], light: false },
+  ember:    { name: "Ember",    v: [251,146,60],  c: [244,63,94],   light: false },
+  ocean:    { name: "Ocean",    v: [96,165,250],  c: [45,212,191],  light: false },
+  sakura:   { name: "Sakura",   v: [249,168,212], c: [196,181,253], light: false },
+  terminal: { name: "Terminal", v: [34,197,94],   c: [190,242,100], light: false },
+  frost:    { name: "Frost",    v: [109,40,217],  c: [8,145,178],   light: true  },
+};
 
 const Eye = (() => {
   let cv, ctx, W = 0, H = 0, dpr = 1, raf = 0, t0 = performance.now();
   const P = [], STARS = [], DUST = [], FLOW = [];
-  const V = [167, 139, 250], C = [103, 232, 249], WH = [236, 233, 255];
+  let V = [167, 139, 250], C = [103, 232, 249], LIGHT = false, MOTION = 1, lastDraw = 0;
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
   let rotY = 0, rotX = -0.12, velY = 0.0022, tRX = -0.12, mx = 0, my = 0, smx = 0, smy = 0;
   let drag = null, pulse = 0, flowing = 0, blink = 1, nextBlink = 3000;
   let cx = 0.5, cy = 0.45, sc = 1, inten = 1; // live
@@ -93,12 +105,14 @@ const Eye = (() => {
 
   function frame(now) {
     raf = requestAnimationFrame(frame);
-    const dt = Math.min(50, now - t0); t0 = now;
+    if (MOTION === 0 && now - lastDraw < 400) return; // motion off: a slow, near-still redraw
+    lastDraw = now;
+    const dt = Math.min(50, now - t0) * MOTION; t0 = now;
     const t = now / 1000;
     updateAnchor();
     cx = lerp(cx, tcx, 0.06); cy = lerp(cy, tcy, 0.06); sc = lerp(sc, tsc, 0.06); inten = lerp(inten, tin, 0.05);
     smx = lerp(smx, mx, 0.06); smy = lerp(smy, my, 0.06);
-    if (!drag) { rotY += velY * dt * 0.06 + (smx * 0.0009); velY = lerp(velY, 0.0022, 0.02); }
+    if (!drag) { rotY += velY * dt * 0.06 + (smx * 0.0009) * MOTION; velY = lerp(velY, 0.0022, 0.02); }
     rotX = lerp(rotX, tRX + smy * 0.18, 0.05);
     pulse *= 0.94; flowing = Math.max(0, flowing - dt / 1000);
     nextBlink -= dt; if (nextBlink < 0) { blink = 0; nextBlink = rnd(3500, 8000); }
@@ -107,7 +121,8 @@ const Eye = (() => {
     const w = cv.width, h = cv.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    ctx.globalCompositeOperation = "lighter";
+    const ADD = LIGHT ? "source-over" : "lighter", AB = LIGHT ? 1.6 : 1;
+    ctx.globalCompositeOperation = ADD;
     const S = Math.min(w, h) * 0.21 * sc, ox = cx * w, oy = cy * h;
     const I = inten;
 
@@ -116,7 +131,7 @@ const Eye = (() => {
       const [X, Y, f, Z] = proj(s.o[0], s.o[1], s.o[2], S * 0.5, ox + smx * 30 * dpr, oy + smy * 20 * dpr);
       if (f <= 0 || Z > 4.5) continue;
       const a = s.b * (0.55 + 0.45 * Math.sin(t * 1.3 + s.tw)) * (0.6 + 0.4 * I);
-      ctx.fillStyle = `rgba(200,195,255,${a * 0.6})`;
+      ctx.fillStyle = rgba(LIGHT ? V : mix(V, [255, 255, 255], 0.6), a * 0.6 * AB);
       const z = dpr * 1.1;
       ctx.fillRect(X, Y, z, z);
     }
@@ -125,7 +140,7 @@ const Eye = (() => {
     const capLift = 0.18 + Math.sin(t * 1.1) * 0.05 + pulse * 0.25;
     const ec = proj(0, 0.72 + capLift, 0, S, ox, oy);
     let g = ctx.createRadialGradient(ec[0], ec[1], 0, ec[0], ec[1], S * 1.6);
-    g.addColorStop(0, `rgba(139,92,246,${0.32 * I + pulse * 0.3})`); g.addColorStop(0.4, `rgba(103,232,249,${0.06 * I})`); g.addColorStop(1, "rgba(0,0,0,0)");
+    g.addColorStop(0, rgba(V, (LIGHT ? 0.14 : 0.32) * I + pulse * 0.3)); g.addColorStop(0.4, rgba(C, 0.06 * I)); g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
     // pyramid particles
@@ -137,8 +152,8 @@ const Eye = (() => {
       const [X, Y, f] = proj(x, y, z, S, ox, oy);
       const depth = Math.max(0.25, Math.min(1.4, (f - 0.75) * 1.6));
       const col = mix(V, C, Math.max(0, Math.min(1, (y + 1) / 2.6)));
-      const a = p.b * shimmer * depth * (0.45 + 0.55 * I);
-      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${a})`;
+      const a = Math.min(1, p.b * shimmer * depth * (0.45 + 0.55 * I) * AB);
+      ctx.fillStyle = rgba(col, a);
       const z2 = (p.b > 0.5 ? 1.7 : 1.2) * dpr * f;
       ctx.fillRect(X - z2 / 2, Y - z2 / 2, z2, z2);
     }
@@ -148,18 +163,18 @@ const Eye = (() => {
       d.a += d.s * dt / 1000 * (1 + flowing * 2);
       const [X, Y, f] = proj(Math.cos(d.a) * d.r, d.y - 0.25 + Math.sin(d.a * 3) * 0.05, Math.sin(d.a) * d.r, S, ox, oy);
       const col = mix(V, C, (Math.sin(d.a) + 1) / 2);
-      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${d.b * 0.55 * (0.4 + 0.6 * I) * Math.max(0.2, f - 0.6)})`;
+      ctx.fillStyle = rgba(col, d.b * 0.55 * (0.4 + 0.6 * I) * Math.max(0.2, f - 0.6) * AB);
       const z = 1.3 * dpr * f; ctx.fillRect(X, Y, z, z);
     }
 
     // telepathic flow: particles rising into the eye
-    if (flowing > 0 && FLOW.length < 260) for (let i = 0; i < 6; i++) FLOW.push({ x: rnd(-3, 3), y: -2.4, z: rnd(-1.5, 1.5), k: 0, s: rnd(0.5, 1.1) });
+    if (flowing > 0 && MOTION > 0.5 && FLOW.length < 260) for (let i = 0; i < 6; i++) FLOW.push({ x: rnd(-3, 3), y: -2.4, z: rnd(-1.5, 1.5), k: 0, s: rnd(0.5, 1.1) });
     for (let i = FLOW.length - 1; i >= 0; i--) {
       const q = FLOW[i]; q.k += q.s * dt / 1000 * 0.8;
       const e = q.k * q.k * (3 - 2 * q.k);
       const x = lerp(q.x, 0, e), y = lerp(q.y, 0.72 + capLift, e), z = lerp(q.z, 0.3, e);
       const [X, Y, f] = proj(x, y, z, S, ox, oy);
-      ctx.fillStyle = `rgba(190,240,255,${(1 - q.k) * 0.9})`;
+      ctx.fillStyle = rgba(LIGHT ? C : mix(C, [255, 255, 255], 0.5), (1 - q.k) * 0.9);
       const zz = 1.8 * dpr * f; ctx.fillRect(X, Y, zz, zz);
       if (q.k >= 1) FLOW.splice(i, 1);
     }
@@ -168,15 +183,15 @@ const Eye = (() => {
     const ER = S * 0.34 * ec[2], EX = ec[0], EY = ec[1];
     const open = Math.max(0.04, blink);
     const lookX = smx * ER * 0.32, lookY = smy * ER * 0.18;
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = ADD;
     g = ctx.createRadialGradient(EX, EY, 0, EX, EY, ER * 1.8);
-    g.addColorStop(0, `rgba(230,220,255,${0.22 * I + pulse * 0.4})`); g.addColorStop(1, "rgba(0,0,0,0)");
+    g.addColorStop(0, rgba(LIGHT ? V : mix(V, [255, 255, 255], 0.7), (LIGHT ? 0.1 : 0.22) * I + pulse * 0.4)); g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(EX, EY, ER * 1.8, 0, 6.29); ctx.fill();
     // almond outline in particles
     for (let i = 0; i < 140; i++) {
       const u = i / 140 * 2 - 1, top = i % 2 ? 1 : -1;
       const ex = EX + u * ER, ey = EY + top * (1 - u * u) * ER * 0.55 * open;
-      ctx.fillStyle = `rgba(236,233,255,${(0.55 + 0.35 * Math.sin(t * 3 + i)) * (0.5 + 0.5 * I)})`;
+      ctx.fillStyle = rgba(LIGHT ? [30, 27, 46] : mix(V, [255, 255, 255], 0.85), (0.55 + 0.35 * Math.sin(t * 3 + i)) * (0.5 + 0.5 * I));
       const z = 1.6 * dpr; ctx.fillRect(ex - z / 2, ey - z / 2, z, z);
     }
     // iris
@@ -186,15 +201,15 @@ const Eye = (() => {
     for (let i = 0; i < 120; i++) {
       const a = i / 120 * 6.283 + t * 0.4, rr = IR * (0.55 + 0.45 * ((i * 7) % 10) / 10);
       const col = mix(V, C, (Math.sin(a * 2 + t) + 1) / 2);
-      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${0.85 * (0.3 + 0.7 * I)})`;
+      ctx.fillStyle = rgba(col, 0.85 * (0.3 + 0.7 * I));
       ctx.fillRect(IX + Math.cos(a) * rr, IY + Math.sin(a) * rr, 1.4 * dpr, 1.4 * dpr);
     }
     g = ctx.createRadialGradient(IX, IY, 0, IX, IY, IR);
-    g.addColorStop(0, "rgba(255,255,255,0.0)"); g.addColorStop(0.5, `rgba(167,139,250,${0.35 + pulse * 0.4})`); g.addColorStop(1, "rgba(103,232,249,0.08)");
+    g.addColorStop(0, "rgba(255,255,255,0.0)"); g.addColorStop(0.5, rgba(V, 0.35 + pulse * 0.4)); g.addColorStop(1, rgba(C, 0.08));
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(IX, IY, IR, 0, 6.29); ctx.fill();
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = `rgba(4,3,10,${0.95 * Math.min(1, I * 1.4)})`; ctx.beginPath(); ctx.arc(IX, IY, IR * (0.38 - pulse * 0.12), 0, 6.29); ctx.fill();
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = ADD;
     ctx.fillStyle = `rgba(255,255,255,${0.9 * I})`; ctx.beginPath(); ctx.arc(IX + IR * 0.22, IY - IR * 0.22, IR * 0.1, 0, 6.29); ctx.fill();
     ctx.restore();
     ctx.globalCompositeOperation = "source-over";
@@ -219,7 +234,9 @@ const Eye = (() => {
     },
     anchor(el, intensity = 1) { anchorEl = el; anchorInt = intensity; if (!el) { tcx = innerWidth > 860 ? 0.66 : 0.5; tcy = 0.66; tsc = innerWidth > 860 ? 1.6 : 1.1; } tin = intensity; },
     place(x, y, s, i = 1) { anchorEl = null; tcx = x; tcy = y; tsc = s; tin = i; },
-    pulse(k = 1) { pulse = Math.min(1.4, pulse + k); },
+    pulse(k = 1) { if (MOTION > 0) pulse = Math.min(1.4, pulse + k); },
+    theme(id) { const t = THEMES[id] || THEMES.void; V = t.v.slice(); C = t.c.slice(); LIGHT = t.light; lastDraw = 0; },
+    motion(m) { MOTION = m === "off" ? 0 : m === "reduced" ? 0.3 : 1; lastDraw = 0; },
     flow(sec = 1.5) { flowing = Math.max(flowing, sec); },
     blink() { blink = 0; },
   };

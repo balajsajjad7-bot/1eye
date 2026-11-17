@@ -39,7 +39,14 @@ const ICON = {
   select: I('<rect x="3" y="3" width="18" height="18" rx="4"/><path d="m8 12 3 3 5-6"/>'),
   logout: I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>'),
   edit: I('<path d="M4 20h4L19 9l-4-4L4 16Z"/>'),
+  ai: I('<path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5l4.7-1.8Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/>'),
+  settings: I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>'),
 };
+
+// ---------- preferences (per device)
+const PREF = (() => { const d = { theme: "void", motion: matchMedia("(prefers-reduced-motion: reduce)").matches ? "reduced" : "full", sound: true, notify: false }; try { return Object.assign(d, JSON.parse(localStorage.getItem("1eye-prefs") || "{}")); } catch { return d; } })();
+function savePrefs() { try { localStorage.setItem("1eye-prefs", JSON.stringify(PREF)); localStorage.setItem("1eye-theme", PREF.theme); } catch (_) {} }
+function applyPrefs() { document.documentElement.dataset.theme = PREF.theme; Eye.theme(PREF.theme); Eye.motion(PREF.motion); const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(); }
 
 // ---------- state
 let S = { v: 0, me: {}, chat: [], links: [], files: [], devices: [] };
@@ -77,6 +84,7 @@ function toast(text, who) {
 }
 let actx;
 function chime() {
+  if (!PREF.sound) return;
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
     const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
@@ -106,6 +114,7 @@ function onUpdate(prev) {
     const lastPrev = prev.chat?.length ? prev.chat[prev.chat.length - 1].ts : 0;
     for (const m of S.chat || []) if (m.ts > lastPrev && m.from !== S.me.id) {
       chime(); Eye.pulse(0.6);
+      if (PREF.notify && document.hidden && "Notification" in window && Notification.permission === "granted") { try { new Notification(m.name, { body: m.text.slice(0, 140), icon: "/assets/logo.svg", tag: "1eye-chat" }); } catch (_) {} }
       if (page !== "chat") toast(m.text.slice(0, 90), m.name);
     }
     const pf = new Set((prev.files || []).map(f => f.name));
@@ -123,13 +132,15 @@ function unread() { return (S.chat || []).filter(m => m.ts > seenChat && m.from 
 // ---------- sidebar
 function renderSide() {
   const host = S.me.host, u = unread();
-  const items = [["transfer", "Transfer"], ["chat", "Chat"], ["links", "Links"], ["devices", "Devices"]];
+  const items = [["transfer", "Transfer"], ["chat", "Chat"], ["links", "Links"]];
+  if ((S.ai || {}).available || host) items.push(["ai", "AI"]);
+  items.push(["devices", "Devices"]);
   if (host) items.push(["control", "Control"]);
-  items.push(["about", "About"]);
+  items.push(["settings", "Settings"], ["about", "About"]);
   const onlineCount = (S.devices || []).filter(d => d.online).length;
   $("#side").innerHTML = `
     <div class="brand">${LOGO}<div><b class="gtext">1EYE</b><small>Telepathic Data Transfer</small></div></div>
-    ${items.map(([k, n]) => `<a class="nav ${page === k ? "on" : ""}" href="#${k}">${ICON[k === "links" ? "link" : k]}<span>${n}</span>${k === "chat" && u ? `<span class="badge">${u}</span>` : ""}${k === "devices" ? `<span class="badge" style="background:rgba(255,255,255,.08);color:var(--muted)">${onlineCount}</span>` : ""}</a>`).join("")}
+    ${items.map(([k, n]) => `<a class="nav ${page === k ? "on" : ""}" href="#${k}">${ICON[k === "links" ? "link" : k]}<span>${n}</span>${k === "chat" && u ? `<span class="badge">${u}</span>` : ""}${k === "devices" ? `<span class="badge" style="background:rgba(var(--fg-rgb),.08);color:var(--muted)">${onlineCount}</span>` : ""}</a>`).join("")}
     <div class="sp"></div>
     <div class="me glass"><div class="ava" style="${avaStyle(S.me.name)}">${initials(S.me.name)}</div>
       <div style="min-width:0"><b>${esc(S.me.name)}</b><span class="pill ${host ? "host" : location.hostname.endsWith("trycloudflare.com") ? "internet" : "wifi"}">${host ? "Host" : location.hostname.endsWith("trycloudflare.com") ? "Internet" : "Wi-Fi"}</span></div>
@@ -143,7 +154,7 @@ addEventListener("hashchange", () => { page = (location.hash || "#transfer").sli
 
 function renderPage(soft) {
   const main = $("#main");
-  const fn = { transfer: pTransfer, chat: pChat, links: pLinks, devices: pDevices, control: pControl, about: pAbout }[page] || pTransfer;
+  const fn = { transfer: pTransfer, chat: pChat, links: pLinks, ai: pAI, devices: pDevices, control: pControl, settings: pSettings, about: pAbout }[page] || pTransfer;
   if (page === "control" && !S.me.host) { location.hash = "#transfer"; return; }
   // soft re-render: keep inputs/focus where possible
   if (soft && main.dataset.page === page) { fn(main, true); return; }
@@ -313,7 +324,7 @@ function pChat(main, soft) {
       <div class="head"><div><div class="label">Channel · all devices</div><h1>Chat</h1></div><div class="sp"></div>
       ${S.me.host ? `<button class="btn sm danger" onclick="if(confirm('Clear the whole chat for everyone?'))api('/host/chatclear')">${ICON.trash} Clear</button>` : ""}</div>
       <div class="chatwrap glass"><div class="msgs" id="msgs"></div>
-      <div class="composer"><textarea class="input" id="ct" rows="1" placeholder="Think it. Send it.  (Enter to send · Shift+Enter for new line)"></textarea>
+      <div class="composer"><textarea class="input" id="ct" rows="1" placeholder="${(S.ai || {}).inChat ? "Think it. Send it.  Start with @eye to ask 1EYE AI" : "Think it. Send it.  (Enter to send · Shift+Enter for new line)"}"></textarea>
       <button class="btn glow" id="cs" style="height:46px;width:52px;padding:0">${ICON.send}</button></div></div></div>`;
     Eye.anchor(null, 0.3);
     const ta = $("#ct");
@@ -333,10 +344,10 @@ function pChat(main, soft) {
   for (const m of S.chat) {
     const day = new Date(m.ts).toDateString();
     if (day !== prevDay) { html += `<div class="daysep">${day === new Date().toDateString() ? "Today" : new Date(m.ts).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</div>`; prevDay = day; prev = null; }
-    const mine = m.from === S.me.id, cont = prev && prev.from === m.from && m.ts - prev.ts < 120000;
+    const mine = m.from === S.me.id, cont = prev && prev.from === m.from && m.ts - prev.ts < 120000, bot = m.from === "ai";
     if (!cont) html += `<div class="who ${mine ? "mine" : ""}">${mine ? "You" : esc(m.name)} · ${clock(m.ts)}</div>`;
-    html += `<div class="m ${mine ? "mine" : ""} ${cont ? "cont" : ""}"><div class="ava" style="${avaStyle(m.name)}">${initials(m.name)}</div>
-      <div class="bub">${linkify(m.text)}<button class="btn icon sm cp" title="Copy" data-c="${esc(m.id)}">${ICON.copy}</button></div></div>`;
+    html += `<div class="m ${mine ? "mine" : ""} ${cont ? "cont" : ""} ${bot ? "bot" : ""}">${bot ? `<div class="ava botava">${LOGO}</div>` : `<div class="ava" style="${avaStyle(m.name)}">${initials(m.name)}</div>`}
+      <div class="bub">${bot ? md(m.text) : linkify(m.text)}<button class="btn icon sm cp" title="Copy" data-c="${esc(m.id)}">${ICON.copy}</button></div></div>`;
     prev = m;
   }
   box.innerHTML = html;
@@ -432,6 +443,7 @@ function pControl(main, soft) {
             <button class="btn sm" onclick="confirm('New PIN? Every device will be signed out.')&&api('/host/pin')">New PIN</button></div></div>
           <div class="glass card"><h3>${ICON.edit.replace("<svg", '<svg width="16" height="16"')} Host name</h3>
             <div style="display:flex;gap:8px"><input class="input" id="hn" maxlength="30"><button class="btn" onclick="api('/host/rename',{name:$('#hn').value}).then(()=>toast('Renamed'))">Save</button></div></div>
+          <div class="glass card" id="aicard"></div>
           <div class="glass card"><h3>Shared folder</h3><div class="linkline" style="margin:0;cursor:default" id="fd"></div></div>
         </div>
       </div>
@@ -477,6 +489,7 @@ function pControl(main, soft) {
     if (ob.innerHTML !== html) ob.innerHTML = html;
   } else { ob.innerHTML = ""; ob.dataset.k = ""; }
   $("#pin").textContent = h.pin || "";
+  drawAICard();
   const lg = $("#log"), txt = (h.log || []).slice().reverse().map(l => esc(l).replace(/^(\S+)(\s+)(\S+)/, '<span class="dim">$1</span>$2<span class="k">$3</span>')).join("\n");
   if (lg.dataset.k !== txt) { lg.dataset.k = txt; lg.innerHTML = txt; }
 }
@@ -518,6 +531,164 @@ function pAbout(main, soft) {
   Eye.anchor(null, 0.3);
 }
 
+
+// ======================================================= MARKDOWN (safe subset, escapes first)
+function md(src) {
+  const blocks = String(src || "").split(/```/);
+  return blocks.map((b, i) => {
+    if (i % 2) return `<pre class="code">${esc(b.replace(/^[a-z0-9]*\n/i, ""))}</pre>`;
+    let h = esc(b);
+    h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>")
+      .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/g, "$1<i>$2</i>")
+      .replace(/^#{1,4}\s+(.+)$/gm, "<b class=\"mdh\">$1</b>")
+      .replace(/(https?:\/\/[^\s<]+)/g, m => `<a href="${m}" target="_blank" rel="noopener">${m}</a>`);
+    const lines = h.split("\n"); let out = "", list = null;
+    for (const ln of lines) {
+      const ul = ln.match(/^\s*[-*•]\s+(.*)/), ol = ln.match(/^\s*\d+[.)]\s+(.*)/);
+      const kind = ul ? "ul" : ol ? "ol" : null;
+      if (kind !== list) { if (list) out += `</${list}>`; if (kind) out += `<${kind}>`; list = kind; }
+      if (kind) out += `<li>${(ul || ol)[1]}</li>`; else out += ln.trim() ? `<p>${ln}</p>` : "";
+    }
+    if (list) out += `</${list}>`;
+    return out;
+  }).join("");
+}
+
+// ======================================================= AI
+let aiThread = (() => { try { return JSON.parse(localStorage.getItem("1eye-ai") || "[]"); } catch { return []; } })();
+const aiCtx = { chat: false, links: false, files: true, attach: [] };
+let aiWaiting = false;
+function saveThread() { try { localStorage.setItem("1eye-ai", JSON.stringify(aiThread.slice(-40))); } catch (_) {} }
+function pAI(main, soft) {
+  const A = S.ai || {};
+  if (!soft) {
+    main.innerHTML = `<div class="page" style="padding-bottom:20px">
+      <div class="head"><div><div class="label">Assistant · powered by Groq</div><h1>1EYE AI</h1></div><div class="sp"></div>
+        <span class="pill" id="aimodel"></span><button class="btn sm" id="aiclear">${ICON.trash} New chat</button></div>
+      <div class="chatwrap glass"><div class="msgs" id="aimsgs"></div>
+        <div class="ctxbar" id="ctxbar"></div>
+        <div class="composer"><textarea class="input" id="ai-t" rows="1" placeholder="Ask anything — about your files, your chat, or the world"></textarea>
+        <button class="btn glow" id="ai-s" style="height:46px;width:52px;padding:0">${ICON.send}</button></div></div></div>`;
+    Eye.anchor(null, 0.3);
+    const ta = $("#ai-t");
+    ta.oninput = () => { ta.style.height = "auto"; ta.style.height = Math.min(160, ta.scrollHeight) + "px"; };
+    ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); askAI(); } };
+    $("#ai-s").onclick = () => askAI();
+    $("#aiclear").onclick = () => { aiThread = []; saveThread(); drawAI(true); };
+    setTimeout(() => ta.focus(), 50);
+  }
+  $("#aimodel").textContent = A.model ? A.model.replace(/^openai\//, "") : (A.available ? "Groq" : "Off");
+  drawCtx();
+  drawAI(!soft);
+}
+function drawCtx() {
+  const bar = $("#ctxbar"); if (!bar) return;
+  const texts = (S.files || []).filter(f => /\.(txt|md|csv|json|log|xml|ya?ml|ini|html?|css|js|ts|py|go|java|c|cpp|h|sql|sh|bat|ps1|srt|vtt)$/i.test(f.name));
+  const key = JSON.stringify([aiCtx, texts.map(f => f.name)]);
+  if (bar.dataset.k === key) return; bar.dataset.k = key;
+  bar.innerHTML = `<span class="label" style="margin-right:4px">Context</span>
+    ${[["files", "File list"], ["chat", "Chat"], ["links", "Links"]].map(([k, n]) => `<div class="chip ${aiCtx[k] ? "on" : ""}" data-k="${k}">${n}</div>`).join("")}
+    ${texts.length ? `<select class="input sel" id="attach"><option value="">Attach a text file…</option>${texts.slice(0, 50).map(f => `<option ${aiCtx.attach.includes(f.name) ? "disabled" : ""} value="${esc(f.name)}">${esc(f.name)}</option>`).join("")}</select>` : ""}
+    ${aiCtx.attach.map(n => `<span class="chip on" data-rm="${esc(n)}">${ICON.doc.replace("<svg", '<svg width="13" height="13"')} ${esc(n)} ✕</span>`).join("")}`;
+  $$("[data-k]", bar).forEach(c => c.onclick = () => { aiCtx[c.dataset.k] = !aiCtx[c.dataset.k]; drawCtx(); });
+  $$("[data-rm]", bar).forEach(c => c.onclick = () => { aiCtx.attach = aiCtx.attach.filter(x => x !== c.dataset.rm); drawCtx(); });
+  const sel = $("#attach"); if (sel) sel.onchange = () => { if (sel.value && aiCtx.attach.length < 3) aiCtx.attach.push(sel.value); drawCtx(); };
+}
+function drawAI(scroll) {
+  const box = $("#aimsgs"); if (!box) return;
+  const A = S.ai || {};
+  if (!A.available) {
+    box.innerHTML = `<div class="empty" style="margin:auto;max-width:420px">${ICON.ai}<div><b style="color:var(--ink)">1EYE AI is off</b><br>${S.me.host ? `Add a free Groq key in <a href="#control" style="color:var(--v)">Control → AI</a> to switch it on.` : "The host hasn't shared AI with other devices."}</div></div>`;
+    return;
+  }
+  if (!aiThread.length) {
+    const ideas = ["Summarize what we chatted about today", "Which files did I share most recently?", "Write a WhatsApp message announcing 1EYE to my friends", "Explain how Anywhere mode keeps my files private"];
+    box.innerHTML = `<div class="aiempty"><div class="botava big">${LOGO}</div><h3>Ask 1EYE AI</h3><p class="muted">It can read your file list, chat and links when you switch them on below, plus up to 3 text files.</p>
+      <div class="ideas">${ideas.map(t => `<button class="idea glass" data-q="${esc(t)}">${esc(t)}</button>`).join("")}</div></div>`;
+    $$("[data-q]", box).forEach(b => b.onclick = () => { if (/chatted/.test(b.dataset.q)) aiCtx.chat = true; if (/files/.test(b.dataset.q)) aiCtx.files = true; drawCtx(); askAI(b.dataset.q); });
+    return;
+  }
+  box.innerHTML = aiThread.map(m => m.role === "user"
+    ? `<div class="m mine"><div class="ava" style="${avaStyle(S.me.name)}">${initials(S.me.name)}</div><div class="bub">${esc(m.content)}</div></div>`
+    : `<div class="m bot"><div class="ava botava">${LOGO}</div><div class="bub ${m.err ? "err" : ""}">${m.err ? esc(m.content) : md(m.content)}<button class="btn icon sm cp" title="Copy" data-i="${aiThread.indexOf(m)}">${ICON.copy}</button></div></div>`).join("")
+    + (aiWaiting ? `<div class="m bot"><div class="ava botava">${LOGO}</div><div class="bub typing"><i></i><i></i><i></i></div></div>` : "");
+  $$("[data-i]", box).forEach(b => b.onclick = () => copy(aiThread[+b.dataset.i].content));
+  if (scroll !== false) box.scrollTop = box.scrollHeight;
+}
+async function askAI(q) {
+  const ta = $("#ai-t"); const text = (q || (ta && ta.value) || "").trim();
+  if (!text || aiWaiting) return;
+  if (ta) { ta.value = ""; ta.style.height = "auto"; }
+  aiThread.push({ role: "user", content: text }); aiWaiting = true; drawAI(); Eye.flow(1.2);
+  const msgs = aiThread.filter(m => !m.err).map(m => ({ role: m.role, content: m.content }));
+  const r = await api("/api/ai", { messages: msgs, chat: aiCtx.chat, links: aiCtx.links, files: aiCtx.files, attach: aiCtx.attach }).catch(() => ({ ok: false, err: "Couldn't reach the host" }));
+  aiWaiting = false;
+  aiThread.push(r.ok ? { role: "assistant", content: r.reply } : { role: "assistant", content: r.err || "Something went wrong", err: true });
+  saveThread(); Eye.pulse(r.ok ? 0.8 : 0.2);
+  if (page === "ai") drawAI();
+}
+function drawAICard() {
+  const card = $("#aicard"); if (!card) return;
+  const A = S.ai || {};
+  const key = JSON.stringify([A.configured, A.model, A.allowDevices, A.inChat, A.keyHint]);
+  if (card.dataset.k === key) return; card.dataset.k = key;
+  const known = (A.models || []).some(m => m.id === A.model);
+  const opts = (A.models || []).map(m => `<option value="${esc(m.id)}" ${m.id === A.model ? "selected" : ""}>${esc(m.name)}</option>`).join("") + `<option value="__custom" ${A.configured && !known ? "selected" : ""}>Custom model ID…</option>`;
+  card.innerHTML = `<h3>${ICON.ai.replace("<svg", '<svg width="16" height="16"')} 1EYE AI <span class="pill ${A.configured ? "host" : ""}" style="margin-left:auto">${A.configured ? "On" : "Off"}</span></h3>
+    ${A.configured ? `<div class="muted" style="font-size:12.5px;margin-bottom:10px">Groq key ${esc(A.keyHint || "")} · stored only on this PC</div>` : `<div class="muted" style="font-size:12.5px;margin-bottom:10px">Paste a free key from <b style="color:var(--ink)">console.groq.com/keys</b>. It stays on this PC and is never sent to other devices.</div>
+      <input class="input" id="aikey" type="password" placeholder="gsk_…" autocomplete="off" style="margin-bottom:8px">`}
+    <select class="input" id="aimodelsel" style="margin-bottom:8px">${opts}</select>
+    <input class="input" id="aicustom" placeholder="e.g. qwen/qwen3.6-27b" style="margin-bottom:8px;${A.configured && !known ? "" : "display:none"}" value="${A.configured && !known ? esc(A.model) : ""}">
+    ${A.configured ? `<label class="tog"><input type="checkbox" id="aidev" ${A.allowDevices ? "checked" : ""}><span></span>Let signed-in devices use AI</label>
+      <label class="tog"><input type="checkbox" id="aichat" ${A.inChat ? "checked" : ""}><span></span>Answer “@eye …” in Chat</label>` : ""}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      ${A.configured ? `<button class="btn sm" id="aitest">Test</button><button class="btn sm" id="aisave">Save model</button><button class="btn sm danger" id="airm">Remove key</button>` : `<button class="btn glow" id="aiadd" style="width:100%">Save &amp; test</button>`}</div>
+    <div class="muted" id="aimsg" style="font-size:12.5px;margin-top:8px;min-height:16px"></div>`;
+  const msg = t => $("#aimsg").textContent = t;
+  const modelVal = () => $("#aimodelsel").value === "__custom" ? $("#aicustom").value.trim() : $("#aimodelsel").value;
+  $("#aimodelsel").onchange = () => { $("#aicustom").style.display = $("#aimodelsel").value === "__custom" ? "" : "none"; };
+  if ($("#aiadd")) $("#aiadd").onclick = async () => { const k = $("#aikey").value.trim(); if (!k) return msg("Paste your Groq key first"); msg("Testing…"); const r = await api("/host/ai", { key: k, model: modelVal(), test: true }); msg(r.ok ? "Connected ✓ — " + r.reply : r.err); if (!r.ok) api("/host/ai", { clear: true }); else toast("1EYE AI is on"); };
+  if ($("#aitest")) $("#aitest").onclick = async () => { msg("Testing…"); const r = await api("/host/ai", { test: true }); msg(r.ok ? "Connected ✓ — " + r.reply : r.err); };
+  if ($("#aisave")) $("#aisave").onclick = async () => { await api("/host/ai", { model: modelVal() }); msg("Model saved"); };
+  if ($("#airm")) $("#airm").onclick = async () => { if (confirm("Remove the Groq key and switch AI off?")) await api("/host/ai", { clear: true }); };
+  if ($("#aidev")) $("#aidev").onchange = e => api("/host/ai", { allowDevices: e.target.checked });
+  if ($("#aichat")) $("#aichat").onchange = e => api("/host/ai", { inChat: e.target.checked });
+}
+
+// ======================================================= SETTINGS
+function pSettings(main, soft) {
+  if (soft) return;
+  const T = THEMES;
+  main.innerHTML = `<div class="page">
+    <div class="head"><div><div class="label">This device</div><h1>Settings</h1><p>Saved on this device only.</p></div></div>
+    <div class="glass card"><h3>Theme</h3><div class="themes">${Object.entries(T).map(([id, t]) => `
+      <button class="theme ${PREF.theme === id ? "on" : ""}" data-t="${id}" style="--a:rgb(${t.v});--b:rgb(${t.c});--bgc:${t.light ? "#eceef4" : "#07070a"}">
+        <span class="sw"><i></i></span><b>${t.name}</b><small>${t.light ? "Light" : "Dark"}</small></button>`).join("")}</div></div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="glass card"><h3>Motion</h3><div class="seg" id="mot">${[["full", "Full 3D"], ["reduced", "Calm"], ["off", "Still"]].map(([k, n]) => `<div data-m="${k}" class="${PREF.motion === k ? "on" : ""}">${n}</div>`).join("")}</div>
+        <div class="muted" style="font-size:12.5px">Calm and Still use less battery.</div></div>
+      <div class="glass card"><h3>Alerts</h3>
+        <label class="tog"><input type="checkbox" id="snd" ${PREF.sound ? "checked" : ""}><span></span>Sound for new messages</label>
+        <label class="tog"><input type="checkbox" id="ntf" ${PREF.notify ? "checked" : ""}><span></span>Desktop notifications</label>
+        <div class="muted" id="ntfmsg" style="font-size:12px;margin-top:6px"></div></div>
+    </div>
+    <div class="glass card" style="margin-top:16px"><h3>Device name</h3><div style="display:flex;gap:8px"><input class="input" id="dn" maxlength="30" value="${esc(S.me.name || "")}"><button class="btn" id="dns">Save</button></div></div>
+  </div>`;
+  Eye.anchor(null, 0.45);
+  $$("[data-t]").forEach(b => b.onclick = () => { PREF.theme = b.dataset.t; savePrefs(); applyPrefs(); $$("[data-t]").forEach(x => x.classList.toggle("on", x === b)); Eye.pulse(0.8); });
+  $$("[data-m]").forEach(b => b.onclick = () => { PREF.motion = b.dataset.m; savePrefs(); applyPrefs(); $$("[data-m]").forEach(x => x.classList.toggle("on", x === b)); });
+  $("#snd").onchange = e => { PREF.sound = e.target.checked; savePrefs(); if (PREF.sound) chime(); };
+  $("#ntf").onchange = async e => {
+    if (!e.target.checked) { PREF.notify = false; savePrefs(); return; }
+    if (!("Notification" in window) || !isSecureContext) { e.target.checked = false; $("#ntfmsg").textContent = "Your browser only allows notifications over HTTPS — use the Anywhere or domain link."; return; }
+    const p = await Notification.requestPermission(); PREF.notify = p === "granted"; e.target.checked = PREF.notify; savePrefs();
+    $("#ntfmsg").textContent = PREF.notify ? "You'll be notified when this tab is in the background." : "Permission was blocked in the browser.";
+  };
+  $("#dns").onclick = async () => { const r = await api("/api/rename", { name: $("#dn").value }); toast(r.ok ? "Renamed" : r.err); };
+}
+
 // ---------- boot
 Eye.init($("#space"));
+applyPrefs();
 sync();

@@ -30,7 +30,7 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-const version = "1.5"
+const version = "1.6"
 
 //go:embed web/*
 var webFS embed.FS
@@ -82,6 +82,8 @@ type saved struct {
 	Devices []savedDev `json:"devices"`
 	Pin     string     `json:"pin"`
 	Perm    permConf   `json:"permanent"`
+	Host    string     `json:"hostName,omitempty"`
+	AI      aiConf     `json:"ai"`
 }
 
 // ---------------------------------------------------------------- state
@@ -91,23 +93,26 @@ var (
 	port                               int
 	hostName                           string
 
-	mu        sync.Mutex
-	pin       string
-	devices   = map[string]*Device{} // token -> device
-	chat      []Msg
-	links     []Link
-	logs      []string
-	fails     = map[string][2]int64{}
-	files     []FileInfo
-	filesSig  string
-	publicURL string
-	tunStatus string
-	tunStop   func()
-	tunID     int
-	pubPort   int
-	wantOn    bool
-	provider  string
-	tunBusy   bool
+	mu            sync.Mutex
+	pin           string
+	devices       = map[string]*Device{} // token -> device
+	chat          []Msg
+	links         []Link
+	logs          []string
+	fails         = map[string][2]int64{}
+	files         []FileInfo
+	filesSig      string
+	publicURL     string
+	tunStatus     string
+	savedHostName string
+	tunStop       func()
+	// internet-wide wrong-PIN counter (per-IP limits can be dodged through relays)
+	publicFails, publicFailStart, publicLockUntil int64
+	tunID                                         int
+	pubPort                                       int
+	wantOn                                        bool
+	provider                                      string
+	tunBusy                                       bool
 
 	ver     int64 = 1
 	changed       = make(chan struct{})
@@ -143,7 +148,7 @@ func save() { // mu held
 	for t, d := range devices {
 		ds = append(ds, savedDev{t, *d})
 	}
-	b, _ := json.MarshalIndent(saved{chat, links, ds, pin, perm}, "", " ")
+	b, _ := json.MarshalIndent(saved{chat, links, ds, pin, perm, savedHostName, ai}, "", " ")
 	tmp := filepath.Join(dataDir, "data.json.tmp")
 	if os.WriteFile(tmp, b, 0600) == nil {
 		os.Rename(tmp, filepath.Join(dataDir, "data.json"))
@@ -167,6 +172,8 @@ func load() {
 			pin = s.Pin
 		}
 		perm = s.Perm
+		ai = s.AI
+		savedHostName = s.Host
 	}
 }
 
@@ -543,6 +550,16 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]any{"ok": false, "err": fmt.Sprintf("Too many attempts. Try again in %ds.", f[1]-time.Now().Unix())})
 		return
 	}
+	if viaNet(r) {
+		mu.Lock()
+		locked := publicLockUntil > time.Now().Unix()
+		wait := publicLockUntil - time.Now().Unix()
+		mu.Unlock()
+		if locked {
+			writeJSON(w, map[string]any{"ok": false, "err": fmt.Sprintf("Internet sign-ins are paused for %ds after too many wrong PINs.", wait)})
+			return
+		}
+	}
 	mu.Lock()
 	ok := subtle.ConstantTimeCompare([]byte(strings.TrimSpace(in.Pin)), []byte(pin)) == 1
 	mu.Unlock()
@@ -553,6 +570,17 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 			logf("BLOCKED  %s for 5 min (wrong PIN ×5)", ip)
 		}
 		mu.Lock()
+		if viaNet(r) {
+			nowS := time.Now().Unix()
+			if nowS-publicFailStart > 600 {
+				publicFailStart, publicFails = nowS, 0
+			}
+			publicFails++
+			if publicFails >= 20 {
+				publicLockUntil, publicFails = nowS+600, 0
+				go logf("LOCKED  internet sign-ins for 10 min (20 wrong PINs)")
+			}
+		}
 		fails[ip] = f
 		mu.Unlock()
 		time.Sleep(time.Second)
@@ -575,7 +603,8 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	bump()
 	mu.Unlock()
 	logf("JOINED  %s via %s (%s)", name, d.Via, ip)
-	http.SetCookie(w, &http.Cookie{Name: "eye", Value: tok, Path: "/", HttpOnly: true, MaxAge: 2592000, SameSite: http.SameSiteLaxMode})
+	http.SetCookie(w, &http.Cookie{Name: "eye", Value: tok, Path: "/", HttpOnly: true, MaxAge: 2592000, SameSite: http.SameSiteLaxMode,
+		Secure: isPublic(r) || r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")})
 	writeJSON(w, map[string]any{"ok": true})
 }
 
@@ -643,7 +672,7 @@ func handleSync(w http.ResponseWriter, r *http.Request) {
 	sort.SliceStable(devs[1:], func(a, b int) bool { return devs[1+a]["joined"].(int64) < devs[1+b]["joined"].(int64) })
 	out := map[string]any{
 		"v": ver, "me": map[string]any{"id": myID, "name": myName, "host": host}, "hostName": hostName,
-		"chat": chat, "links": links, "files": files, "devices": devs, "version": version,
+		"chat": chat, "links": links, "files": files, "devices": devs, "version": version, "ai": aiPublicState(host),
 	}
 	if host {
 		l := logs
@@ -696,7 +725,8 @@ func handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 	id, name := whoName(d)
 	mu.Lock()
-	chat = append(chat, Msg{rid(), id, name, t, now()})
+	msg := Msg{rid(), id, name, t, now()}
+	chat = append(chat, msg)
 	if len(chat) > 1000 {
 		chat = chat[len(chat)-1000:]
 	}
@@ -706,6 +736,7 @@ func handleChat(w http.ResponseWriter, r *http.Request) {
 	save()
 	bump()
 	mu.Unlock()
+	go maybeChatAI(msg)
 	writeJSON(w, map[string]any{"ok": true})
 }
 
@@ -795,7 +826,8 @@ func handleFile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	if strings.EqualFold(filepath.Ext(name), ".svg") || strings.EqualFold(filepath.Ext(name), ".html") || strings.EqualFold(filepath.Ext(name), ".htm") {
+	switch strings.ToLower(filepath.Ext(name)) {
+	case ".svg", ".html", ".htm", ".xhtml", ".xml", ".xht", ".mht", ".mhtml", ".shtml":
 		w.Header().Set("Content-Security-Policy", "sandbox")
 	}
 	http.ServeFile(w, r, p)
@@ -941,10 +973,14 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 		readJSON(r, &in)
 		if n := strings.TrimSpace(in.Name); n != "" && len([]rune(n)) <= 30 {
 			mu.Lock()
-			hostName = n
+			hostName, savedHostName = n, n
+			save()
 			bump()
 			mu.Unlock()
 		}
+	case "ai":
+		handleHostAI(w, r)
+		return
 	case "permanent":
 		handlePermanent(w, r)
 		return
@@ -991,6 +1027,9 @@ func main() {
 			hostName = os.Args[i+2]
 		}
 	}
+	if savedHostName != "" {
+		hostName = savedHostName
+	}
 	if hostName == "" || hostName == "localhost" {
 		hostName = "Host PC"
 	}
@@ -1020,6 +1059,7 @@ func main() {
 	}
 	port = ln.Addr().(*net.TCPAddr).Port
 
+	cleanParts()
 	scanFiles()
 	go func() {
 		for range time.Tick(2 * time.Second) {
@@ -1034,6 +1074,8 @@ func main() {
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "1eye") })
 	mux.HandleFunc("/api/login", handleLogin)
 	mux.HandleFunc("/api/logout", handleLogout)
+	mux.HandleFunc("/api/rename", handleSelfRename)
+	mux.HandleFunc("/api/ai", handleAI)
 	mux.HandleFunc("/api/sync", handleSync)
 	mux.HandleFunc("/api/chat", handleChat)
 	mux.HandleFunc("/api/link", handleLink)
@@ -1099,7 +1141,50 @@ func guard(h http.Handler) http.Handler {
 				return
 			}
 		}
-		w.Header().Set("X-Frame-Options", "DENY")
+		hd := w.Header()
+		hd.Set("X-Frame-Options", "SAMEORIGIN") // DENY broke the in-app PDF preview
+		hd.Set("X-Content-Type-Options", "nosniff")
+		hd.Set("Referrer-Policy", "no-referrer")
+		hd.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+		if !strings.HasPrefix(r.URL.Path, "/f/") {
+			hd.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'")
+		}
 		h.ServeHTTP(w, r)
 	})
+}
+
+// a signed-in device renames itself
+func handleSelfRename(w http.ResponseWriter, r *http.Request) {
+	d, ok := who(r)
+	if !ok || r.Method != "POST" {
+		w.WriteHeader(401)
+		return
+	}
+	var in struct{ Name string }
+	readJSON(r, &in)
+	n := strings.TrimSpace(in.Name)
+	if n == "" || len([]rune(n)) > 30 {
+		writeJSON(w, map[string]any{"ok": false, "err": "1–30 characters"})
+		return
+	}
+	mu.Lock()
+	if d == nil {
+		hostName, savedHostName = n, n
+	} else {
+		d.Name = n
+	}
+	save()
+	bump()
+	mu.Unlock()
+	writeJSON(w, map[string]any{"ok": true})
+}
+
+// leftovers of interrupted uploads
+func cleanParts() {
+	ents, _ := os.ReadDir(sharedDir)
+	for _, e := range ents {
+		if strings.HasSuffix(e.Name(), ".part") {
+			os.Remove(filepath.Join(sharedDir, e.Name()))
+		}
+	}
 }
