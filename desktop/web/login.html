@@ -1,0 +1,61 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050507">
+<title>1EYE — Telepathic Data Transfer</title>
+<link rel="icon" href="/assets/logo.svg">
+<link rel="stylesheet" href="/assets/style.css">
+</head><body>
+<canvas id="space"></canvas><div class="vignette"></div><div class="grain"></div>
+<div class="gate">
+  <form class="gatecard glass" id="f" autocomplete="off" style="margin-top:28vh">
+    <div class="logo" id="logo"></div>
+    <h1 class="gtext">1EYE</h1>
+    <div class="tag">Telepathic Data Transfer</div>
+    <div class="label">Enter the PIN shown on the host</div>
+    <div class="pins" id="pins"></div>
+    <input class="input" id="name" placeholder="Name this device (optional)" maxlength="30" style="text-align:center">
+    <button class="btn glow" style="width:100%;height:46px;margin-top:14px;font-size:14px" id="go">Open the eye</button>
+    <div class="gerr" id="err"></div>
+    <div class="gfoot">Made by Balaj · mid-J · because he needed it</div>
+  </form>
+</div>
+<script src="/assets/eye.js"></script>
+<script>
+document.getElementById('logo').innerHTML = LOGO;
+Eye.init(document.getElementById('space'));
+const card = document.getElementById('f');
+const place = () => { const r = card.getBoundingClientRect(), top = Math.max(120, r.top); const base = .21 * Math.min(innerWidth, innerHeight); const sc = Math.min(1.1, top * .78 / (2.75 * base)); Eye.place(.5, (top / 2 + .32 * base * sc) / innerHeight, sc, 1); };
+addEventListener('resize', place); setTimeout(place, 30);
+
+const pins = document.getElementById('pins'), boxes = [];
+for (let i = 0; i < 6; i++) {
+  const b = document.createElement('input');
+  b.inputMode = 'numeric'; b.maxLength = 1; b.autocomplete = 'one-time-code';
+  b.oninput = () => { b.value = b.value.replace(/\D/g, '').slice(-1); if (b.value && i < 5) boxes[i + 1].focus(); if (code().length === 6) submit(); };
+  b.onkeydown = e => { if (e.key === 'Backspace' && !b.value && i) boxes[i - 1].focus(); };
+  b.onpaste = e => { const t = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6); if (t) { e.preventDefault(); t.split('').forEach((c, j) => boxes[j].value = c); boxes[Math.min(5, t.length)].focus(); if (t.length === 6) submit(); } };
+  pins.appendChild(b); boxes.push(b);
+}
+boxes[0].focus();
+const code = () => boxes.map(b => b.value).join('');
+const ua = navigator.userAgent;
+document.getElementById('name').value = localStorage.getItem('1eye-name') || (/iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows PC' : '');
+let busy = false;
+async function submit(e) {
+  e && e.preventDefault();
+  if (busy) return;
+  if (code().length < 6) { document.getElementById('err').textContent = 'Enter all 6 digits'; return; }
+  busy = true; document.getElementById('go').textContent = 'Connecting…';
+  const name = document.getElementById('name').value.trim();
+  try { localStorage.setItem('1eye-name', name) } catch (_) {}
+  const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: code(), name }) }).then(r => r.json()).catch(() => ({ ok: false, err: 'Host unreachable' }));
+  busy = false;
+  if (r.ok) { Eye.pulse(1.3); Eye.flow(1.2); setTimeout(() => location.reload(), 650); return; }
+  document.getElementById('go').textContent = 'Open the eye';
+  document.getElementById('err').textContent = r.err || 'Wrong PIN';
+  pins.classList.remove('err'); void pins.offsetWidth; pins.classList.add('err');
+  boxes.forEach(b => b.value = ''); boxes[0].focus(); Eye.blink();
+}
+card.onsubmit = submit;
+</script>
+</body></html>

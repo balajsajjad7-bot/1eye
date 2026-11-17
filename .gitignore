@@ -1,0 +1,6 @@
+dist/
+build/
+*.keystore
+*.jks
+1EYE_Data/
+1EYE_Shared/
