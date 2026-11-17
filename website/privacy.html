@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy policy · 1EYE</title><link rel="icon" href="logo.svg"><meta name="description" content="Privacy policy for 1EYE - Telepathic Data Transfer">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,rgba(124,92,255,.18),transparent),#07060b;color:#e9e7f2;font:15px/1.65 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.w{max-width:760px;margin:0 auto;padding:28px 22px 60px}nav{display:flex;gap:16px;align-items:center;margin-bottom:34px}nav a{color:#b9b6cc;text-decoration:none;font-size:14px}nav .b{font-weight:700;color:#fff;letter-spacing:.08em;margin-right:auto}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:28px 30px;backdrop-filter:blur(14px)}
+h1{font-size:30px;margin:0 0 14px;letter-spacing:-.02em}h2{font-size:18px;margin:28px 0 8px}a{color:#a995ff}code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}th{color:#b9b6cc;font-weight:600}
+footer{color:#77738c;font-size:13px;margin-top:28px}
+</style></head><body><div class="w"><nav><a class="b" href="/">1EYE</a><a href="code-signing.html">Code signing policy</a><a href="privacy.html">Privacy</a><a href="https://github.com/balajsajjad7-bot/1eye">GitHub</a></nav>
+<div class="card"><h1>Privacy policy</h1>
+<p>1EYE has no accounts, no analytics, no telemetry and no update checks. There is no 1EYE server: the app runs on your own PC or phone (the <i>host</i>) and your other devices connect to it.</p>
+<h2>What stays on the host</h2>
+<p>Files, chat, links, the PIN, linked devices and settings are stored only in the <code>1EYE_Data</code> and <code>1EYE_Shared</code> folders next to the app. The AI key and the permanent-domain token are stored in <code>1EYE_Data/data.json</code>, readable only by your user account, and are never sent to linked devices.</p>
+<h2>When 1EYE contacts other systems</h2>
+<p>1EYE only connects to the services below when you turn on the feature that needs them:</p>
+<table><tr><th>You do this</th><th>1EYE connects to</th><th>What is sent</th></tr><tr><td>Use 1EYE on Wi-Fi</td><td>Only your own devices on your network</td><td>Whatever you share</td></tr><tr><td>Press <b>Go online</b></td><td>Cloudflare (<code>trycloudflare.com</code>), or if that is blocked <code>localhost.run</code> or <code>pinggy.io</code></td><td>Traffic between your devices passes through the tunnel service, encrypted with HTTPS</td></tr><tr><td>Press <b>Go online</b> for the first time on Windows</td><td>GitHub, to download Cloudflare's open-source <code>cloudflared</code> program</td><td>A normal download request</td></tr><tr><td>Add a permanent domain</td><td>Cloudflare Tunnel, using the token you paste</td><td>Same as Go online</td></tr><tr><td>Add a Groq key and use 1EYE AI or <code>@eye</code></td><td>Groq (<code>api.groq.com</code>)</td><td>Your question and only the context you choose (chat, links, file names, attached text files)</td></tr><tr><td>Any of the above when your network has no DNS</td><td>Cloudflare DNS (<code>1.1.1.1</code>)</td><td>The name of the service being looked up</td></tr></table>
+<p>Each of these services has its own privacy policy. Turning the feature off (Go offline, remove the domain, remove the AI key) stops 1EYE contacting it.</p>
+<h2>The website</h2>
+<p>1eye.dpdns.org is a static page hosted on Cloudflare Pages. It sets no cookies and has no analytics.</p>
+<h2>Contact</h2>
+<p>Open an issue at <a href="https://github.com/balajsajjad7-bot/1eye/issues">https://github.com/balajsajjad7-bot/1eye/issues</a></p></div><footer>1EYE · Telepathic Data Transfer · MIT License</footer></div></body></html>

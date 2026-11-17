@@ -71,3 +71,7 @@ cd android && ./build.sh
 Made by **Balaj** in Lahore. Rolled one, lit it, and somewhere around the middle of that J decided he needed this service for himself. Why? idk. Lame.
 
 MIT licensed.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org) (application pending). Details, team roles and what gets signed: [CODE_SIGNING.md](CODE_SIGNING.md). Privacy: [PRIVACY.md](PRIVACY.md).

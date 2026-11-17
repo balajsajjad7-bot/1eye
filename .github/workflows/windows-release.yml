@@ -1,0 +1,95 @@
+# Builds 1EYE.exe from source on GitHub-hosted runners and, once the
+# SignPath Foundation project is set up, sends it to SignPath for signing.
+# Every signing request needs manual approval in SignPath.
+name: Windows build
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: desktop/go.mod
+          cache-dependency-path: desktop/go.sum
+
+      - name: Build Windows resources (icon, manifest, version info)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq binutils-mingw-w64-x86-64
+          cd desktop/winres
+          x86_64-w64-mingw32-windres -O coff -i 1eye.rc -o ../rsrc_windows_amd64.syso
+
+      - name: Build 1EYE.exe
+        working-directory: desktop
+        env:
+          CGO_ENABLED: '0'
+          GOOS: windows
+          GOARCH: amd64
+          GOFLAGS: -mod=mod
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags "-s -w -H windowsgui" -o dist/1EYE.exe .
+          sha256sum dist/1EYE.exe
+
+      - name: Upload unsigned build
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: 1EYE-unsigned
+          path: desktop/dist/1EYE.exe
+          if-no-files-found: error
+
+  sign:
+    needs: build
+    # Runs only after SIGNPATH_ORGANIZATION_ID is added as a repository variable
+    if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit signing request to SignPath
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: 1eye
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: initial
+          github-artifact-id: ${{ needs.build.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 86400
+          output-artifact-directory: signed
+
+      - name: Package
+        run: |
+          cd signed
+          zip -9 ../1EYE-Windows.zip 1EYE.exe
+          cd ..
+          sha256sum signed/1EYE.exe 1EYE-Windows.zip > SHA256SUMS-windows.txt
+
+      - name: Attach to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            1EYE-Windows.zip
+            SHA256SUMS-windows.txt
+
+      - name: Keep signed build
+        uses: actions/upload-artifact@v4
+        with:
+          name: 1EYE-Windows-signed
+          path: |
+            1EYE-Windows.zip
+            SHA256SUMS-windows.txt
