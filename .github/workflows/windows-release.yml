@@ -18,9 +18,9 @@ jobs:
     outputs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: desktop/go.mod
           cache-dependency-path: desktop/go.sum
@@ -28,7 +28,7 @@ jobs:
       - name: Build Windows resources (icon, manifest, version info)
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq binutils-mingw-w64-x86-64
+          sudo apt-get install -y -qq binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64
           cd desktop/winres
           x86_64-w64-mingw32-windres -O coff -i 1eye.rc -o ../rsrc_windows_amd64.syso
 
