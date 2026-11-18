@@ -6,8 +6,8 @@
 
 <p align="center">
   <a href="https://1eye.dpdns.org"><b>Website</b></a> ·
-  <a href="releases/1EYE-Windows-v1.6.zip"><b>Download for Windows</b></a> ·
-  <a href="releases/1EYE-Android-v1.6.apk"><b>Download for Android</b></a> ·
+  <a href="releases/1EYE-Windows-v1.7.zip"><b>Download for Windows</b></a> ·
+  <a href="releases/1EYE-Android-v1.7.apk"><b>Download for Android</b></a> ·
   <a href="releases/SHA256SUMS.txt">Checksums</a>
 </p>
 
@@ -68,7 +68,7 @@ cd android && ./build.sh
 
 ## Credits
 
-Made by **Balaj** in Lahore. Rolled one, lit it, and somewhere around the middle of that J decided he needed this service for himself. Why? idk. Lame.
+Made by **Balaj**. "I built 1EYE because I needed it myself: one eye across every device I own, and nothing in between."
 
 MIT licensed.
 

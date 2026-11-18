@@ -133,7 +133,7 @@ function unread() { return (S.chat || []).filter(m => m.ts > seenChat && m.from 
 function renderSide() {
   const host = S.me.host, u = unread();
   const items = [["transfer", "Transfer"], ["chat", "Chat"], ["links", "Links"]];
-  if ((S.ai || {}).available || host) items.push(["ai", "AI"]);
+  items.push(["ai", "AI"]);
   items.push(["devices", "Devices"]);
   if (host) items.push(["control", "Control"]);
   items.push(["settings", "Settings"], ["about", "About"]);
@@ -145,7 +145,7 @@ function renderSide() {
     <div class="me glass"><div class="ava" style="${avaStyle(S.me.name)}">${initials(S.me.name)}</div>
       <div style="min-width:0"><b>${esc(S.me.name)}</b><span class="pill ${host ? "host" : location.hostname.endsWith("trycloudflare.com") ? "internet" : "wifi"}">${host ? "Host" : location.hostname.endsWith("trycloudflare.com") ? "Internet" : "Wi-Fi"}</span></div>
       ${host ? "" : `<button class="btn icon sm" style="margin-left:auto" title="Disconnect" onclick="logout()">${ICON.logout}</button>`}</div>
-    <div class="credit">v${esc(S.version || "")} · crafted by <a href="#about">Balaj</a>, mid-J.</div>`;
+    <div class="credit">v${esc(S.version || "")} · crafted by <a href="#about">Balaj</a></div>`;
 }
 async function logout() { if (confirm("Disconnect this device?")) { await api("/api/logout"); location.reload(); } }
 
@@ -518,8 +518,8 @@ function pAbout(main, soft) {
   if (soft) return;
   main.innerHTML = `<div class="page"><div class="about">
     <div class="logo">${LOGO}</div><h1 class="gtext">1EYE</h1><div class="tag">Telepathic Data Transfer · v${esc(S.version)}</div>
-    <div class="quote glass">“Made by <b class="gtext">Balaj</b>. Rolled one, lit it, and somewhere around the middle of that J decided he needed this service for himself. Why? idk. Lame.”
-      <small>— the author, probably still holding it</small></div>
+    <div class="quote glass">“I built 1EYE because I needed it myself: one eye across every device I own, and nothing in between.”
+      <small>— <b class="gtext">Balaj</b>, creator of 1EYE</small></div>
     <div class="feat">
       <div class="glass"><b>Files, any size</b>Drag, drop, paste. Streams straight to disk with live speed.</div>
       <div class="glass"><b>Chat</b>A private channel between your devices. Links get saved automatically.</div>

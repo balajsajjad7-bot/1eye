@@ -30,7 +30,7 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-const version = "1.6"
+const version = "1.7"
 
 //go:embed web/*
 var webFS embed.FS
@@ -504,7 +504,7 @@ func reachable(u string) bool {
 	}
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 16))
-	return string(b) == "1eye"
+	return strings.HasPrefix(string(b), "1eye")
 }
 
 // ---------------------------------------------------------------- pages
@@ -1040,9 +1040,15 @@ func main() {
 		if resp, err := cl.Get(fmt.Sprintf("http://127.0.0.1:%d/ping", p)); err == nil {
 			b, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			if string(b) == "1eye" {
-				openURL(fmt.Sprintf("http://127.0.0.1:%d/", p))
-				return
+			if strings.HasPrefix(string(b), "1eye") {
+				// An older 1EYE is already running: ask it to shut down and take over,
+				// so opening a new version actually runs the new version.
+				running := strings.TrimSpace(strings.TrimPrefix(string(b), "1eye"))
+				if !olderVersion(running, version) || !replaceRunning(p) {
+					openURL(fmt.Sprintf("http://127.0.0.1:%d/", p))
+					return
+				}
+				break
 			}
 		}
 	}
@@ -1070,8 +1076,12 @@ func main() {
 	static, _ := fs.Sub(webFS, "web")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleRoot)
-	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(static))))
-	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "1eye") })
+	assets := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
+	mux.Handle("/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache") // always load the current version after an update
+		assets.ServeHTTP(w, r)
+	}))
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "1eye "+version) })
 	mux.HandleFunc("/api/login", handleLogin)
 	mux.HandleFunc("/api/logout", handleLogout)
 	mux.HandleFunc("/api/rename", handleSelfRename)
@@ -1187,4 +1197,39 @@ func cleanParts() {
 			os.Remove(filepath.Join(sharedDir, e.Name()))
 		}
 	}
+}
+
+// olderVersion reports whether a running copy (empty = before v1.7, which didn't report it) is older than ours.
+func olderVersion(running, mine string) bool {
+	if running == "" {
+		return true
+	}
+	parse := func(v string) (a, b int) { fmt.Sscanf(v, "%d.%d", &a, &b); return }
+	ra, rb := parse(running)
+	ma, mb := parse(mine)
+	return ra < ma || (ra == ma && rb < mb)
+}
+
+// replaceRunning asks the copy on port p to shut down and waits for it to go.
+func replaceRunning(p int) bool {
+	cl := http.Client{Timeout: 2 * time.Second}
+	req, _ := http.NewRequest("POST", fmt.Sprintf("http://127.0.0.1:%d/host/quit", p), nil)
+	resp, err := cl.Do(req)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return false
+	}
+	for i := 0; i < 40; i++ {
+		time.Sleep(250 * time.Millisecond)
+		if r, err := cl.Get(fmt.Sprintf("http://127.0.0.1:%d/ping", p)); err != nil {
+			time.Sleep(500 * time.Millisecond)
+			return true
+		} else {
+			r.Body.Close()
+		}
+	}
+	return false
 }
