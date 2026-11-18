@@ -6,7 +6,7 @@ PC or phone (the *host*) and your other devices connect to it.
 ## What stays on the host
 
 Files, chat, links, the PIN, linked devices and settings are stored only in the `1EYE_Data` and `1EYE_Shared` folders
-next to the app. The AI key and the permanent-domain token are stored in `1EYE_Data/data.json`, readable only by your user
+next to the app. The AI key, cloud sign-ins and the permanent-domain token are stored in `1EYE_Data/data.json`, readable only by your user
 account, and are never sent to linked devices.
 
 ## When 1EYE contacts other systems
@@ -19,10 +19,11 @@ account, and are never sent to linked devices.
 | Press **Go online** | Cloudflare (`trycloudflare.com`), or if that is blocked `localhost.run` or `pinggy.io` | Traffic between your devices passes through the tunnel service, encrypted with HTTPS |
 | Press **Go online** for the first time on Windows | GitHub, to download Cloudflare's open-source `cloudflared` program | A normal download request |
 | Add a permanent domain | Cloudflare Tunnel, using the token you paste | Same as Go online |
+| Connect Google Drive or a WebDAV service in **Cloud** | Google (`accounts.google.com`, `googleapis.com`) or the WebDAV address you enter | Only files you save there, into a “1EYE” folder. Google access is limited to files 1EYE created |
 | Add a Groq key and use 1EYE AI or `@eye` | Groq (`api.groq.com`) | Your question and only the context you choose (chat, links, file names, attached text files) |
 | Any of the above when your network has no DNS | Cloudflare DNS (`1.1.1.1`) | The name of the service being looked up |
 
-Each of these services has its own privacy policy. Turning the feature off (Go offline, remove the domain, remove the AI key)
+Each of these services has its own privacy policy. Turning the feature off (Go offline, remove the domain, remove the AI key, disconnect a cloud)
 stops 1EYE contacting it.
 
 ## The website
