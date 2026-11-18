@@ -26,11 +26,15 @@ jobs:
           cache-dependency-path: desktop/go.sum
 
       - name: Build Windows resources (icon, manifest, version info)
+        working-directory: desktop/winres
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64
-          cd desktop/winres
-          x86_64-w64-mingw32-windres -O coff -i 1eye.rc -o ../rsrc_windows_amd64.syso
+          WINDRES=$(ls /usr/bin/llvm-windres* /usr/lib/llvm-*/bin/llvm-windres 2>/dev/null | head -1)
+          if [ -z "$WINDRES" ]; then
+            sudo apt-get install -y -qq --no-install-recommends llvm
+            WINDRES=$(ls /usr/bin/llvm-windres* /usr/lib/llvm-*/bin/llvm-windres | head -1)
+          fi
+          echo "using $WINDRES"
+          "$WINDRES" --no-preprocess --target=pe-x86-64 -O coff -i 1eye.rc -o ../rsrc_windows_amd64.syso
 
       - name: Build 1EYE.exe
         working-directory: desktop

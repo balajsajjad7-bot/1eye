@@ -1,10 +1,8 @@
-#define VER_NUM 1,6,0,0
-#define VER_STR "1.6.0.0"
 1 ICON "1eye.ico"
 1 24 "1eye.manifest"
 1 VERSIONINFO
-FILEVERSION VER_NUM
-PRODUCTVERSION VER_NUM
+FILEVERSION 1,6,0,0
+PRODUCTVERSION 1,6,0,0
 FILEFLAGSMASK 0x3fL
 FILEFLAGS 0x0L
 FILEOS 0x40004L
@@ -17,12 +15,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "1EYE"
       VALUE "FileDescription", "1EYE - Telepathic Data Transfer"
-      VALUE "FileVersion", VER_STR
+      VALUE "FileVersion", "1.6.0.0"
       VALUE "InternalName", "1EYE"
       VALUE "LegalCopyright", "Copyright (c) 2026 Balaj. MIT License."
       VALUE "OriginalFilename", "1EYE.exe"
       VALUE "ProductName", "1EYE"
-      VALUE "ProductVersion", VER_STR
+      VALUE "ProductVersion", "1.6.0.0"
     END
   END
   BLOCK "VarFileInfo"
