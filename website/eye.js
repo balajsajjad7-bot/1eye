@@ -15,7 +15,8 @@ const Eye = (() => {
   let cv, ctx, W = 0, H = 0, dpr = 1, raf = 0, t0 = performance.now();
   const P = [], STARS = [], DUST = [], FLOW = [], SAMPLE = [];
   let drop = 0, fx = null, fxc = null, eyeXY = [0, 0];
-  const V = [167, 139, 250], C = [103, 232, 249], WH = [236, 233, 255];
+  const VN = [167, 139, 250], CN = [110, 240, 190], VD = [76, 29, 149], CD = [13, 118, 110];
+  let V = VN, C = CN, DAY = 0, DAYT = 0;
   let rotY = 0, rotX = -0.12, velY = 0.0022, tRX = -0.12, mx = 0, my = 0, smx = 0, smy = 0;
   let drag = null, pulse = 0, flowing = 0, blink = 1, nextBlink = 3000;
   let cx = 0.5, cy = 0.45, sc = 1, inten = 1; // live
@@ -97,6 +98,54 @@ const Eye = (() => {
     }
   }
 
+  // glass faces: the pyramid as a solid, lit, translucent object (drawn back to front)
+  const APEX = [0, 1.25, 0], BASE = [[-1.15, -1, -1.15], [1.15, -1, -1.15], [1.15, -1, 1.15], [-1.15, -1, 1.15]];
+  const ring = y => { const k = (1.25 - y) / 2.25; return BASE.map(c => [lerp(APEX[0], c[0], k), lerp(APEX[1], c[1], k), lerp(APEX[2], c[2], k)]); };
+  const R0 = ring(0.12), R1 = ring(0.3);
+  function glass(S, ox, oy, capLift, I) {
+    const faces = [];
+    for (let e = 0; e < 4; e++) {
+      const f = (e + 1) % 4;
+      faces.push({ pts: [BASE[e], BASE[f], R0[f], R0[e]], lift: 0, e });
+      faces.push({ pts: [R1[e], R1[f], APEX], lift: capLift, e });
+    }
+    // ground: a soft pool of light (night) or shadow (day) under the base
+    const gc = proj(0, -1.02, 0, S, ox, oy), gr = S * 2.1 * gc[2];
+    ctx.save(); ctx.translate(gc[0], gc[1]); ctx.scale(1, 0.28);
+    let g = ctx.createRadialGradient(0, 0, 0, 0, 0, gr);
+    if (DAY > 0.5) { g.addColorStop(0, `rgba(40,30,80,${0.18 * I})`); g.addColorStop(1, "rgba(40,30,80,0)"); }
+    else { g.addColorStop(0, `rgba(${C[0] | 0},${C[1] | 0},${C[2] | 0},${0.16 * I})`); g.addColorStop(0.5, `rgba(${V[0] | 0},${V[1] | 0},${V[2] | 0},${0.06 * I})`); g.addColorStop(1, "rgba(0,0,0,0)"); }
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, gr, 0, 6.29); ctx.fill(); ctx.restore();
+    const P2 = faces.map(fc => {
+      const q = fc.pts.map(p => proj(p[0], p[1] + fc.lift, p[2], S, ox, oy));
+      let area = 0; for (let i = 0; i < q.length; i++) { const a = q[i], b = q[(i + 1) % q.length]; area += a[0] * b[1] - b[0] * a[1]; }
+      return { q, z: q.reduce((s, v) => s + v[3], 0) / q.length, front: area < 0, e: fc.e };
+    }).sort((a, b) => a.z - b.z);
+    const prev = ctx.globalCompositeOperation;
+    ctx.globalCompositeOperation = "source-over";
+    for (const f of P2) {
+      const light = 0.5 + 0.5 * Math.cos(rotY + f.e * Math.PI / 2 - 0.9);   // key light from the upper left
+      const top = f.q.reduce((a, v) => v[1] < a[1] ? v : a), bot = f.q.reduce((a, v) => v[1] > a[1] ? v : a);
+      const g = ctx.createLinearGradient(top[0], top[1], bot[0], bot[1]);
+      const k = (f.front ? 1 : 0.35) * (0.4 + 0.6 * I);
+      if (DAY > 0.5) {
+        g.addColorStop(0, `rgba(255,255,255,${(0.18 + 0.32 * light) * k})`);
+        g.addColorStop(1, `rgba(${V[0] | 0},${V[1] | 0},${V[2] | 0},${(0.05 + 0.12 * (1 - light)) * k})`);
+      } else {
+        g.addColorStop(0, `rgba(${C[0] | 0},${C[1] | 0},${C[2] | 0},${(0.03 + 0.09 * light) * k})`);
+        g.addColorStop(1, `rgba(${V[0] | 0},${V[1] | 0},${V[2] | 0},${(0.02 + 0.07 * light) * k})`);
+      }
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(f.q[0][0], f.q[0][1]);
+      for (let i = 1; i < f.q.length; i++) ctx.lineTo(f.q[i][0], f.q[i][1]);
+      ctx.closePath(); ctx.fill();
+      if (f.front) { // specular glint along the lit edge
+        ctx.strokeStyle = DAY > 0.5 ? `rgba(255,255,255,${0.5 * light * k})` : `rgba(230,255,245,${0.22 * light * k})`;
+        ctx.lineWidth = 1.2 * dpr; ctx.beginPath(); ctx.moveTo(f.q[0][0], f.q[0][1]); ctx.lineTo(f.q[f.q.length - 1][0], f.q[f.q.length - 1][1]); ctx.stroke();
+      }
+    }
+    ctx.globalCompositeOperation = prev;
+  }
+
   function frame(now) {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(50, now - t0); t0 = now;
@@ -111,9 +160,12 @@ const Eye = (() => {
     blink = lerp(blink, 1, 0.12);
 
     const w = cv.width, h = cv.height;
+    DAY = lerp(DAY, DAYT, Math.min(1, dt / 1000 * 2.2));
+    V = mix(VN, VD, DAY); C = mix(CN, CD, DAY);
+    const ADD = DAY < 0.5 ? "lighter" : "source-over";
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = ADD;
     const S = Math.min(w, h) * 0.21 * sc, ox = cx * w, oy = cy * h;
     const I = inten;
 
@@ -121,7 +173,8 @@ const Eye = (() => {
     for (const s of STARS) {
       const [X, Y, f, Z] = proj(s.o[0], s.o[1], s.o[2], S * 0.5, ox + smx * 30 * dpr, oy + smy * 20 * dpr);
       if (f <= 0 || Z > 4.5) continue;
-      const a = s.b * (0.55 + 0.45 * Math.sin(t * 1.3 + s.tw)) * (0.6 + 0.4 * I);
+      const a = s.b * (0.55 + 0.45 * Math.sin(t * 1.3 + s.tw)) * (0.6 + 0.4 * I) * 0.45 * (1 - DAY);
+      if (a < 0.01) continue;
       ctx.fillStyle = `rgba(200,195,255,${a * 0.6})`;
       const z = dpr * 1.1;
       ctx.fillRect(X, Y, z, z);
@@ -131,8 +184,9 @@ const Eye = (() => {
     const capLift = 0.18 + Math.sin(t * 1.1) * 0.05 + pulse * 0.25;
     const ec = proj(0, 0.72 + capLift, 0, S, ox, oy);
     let g = ctx.createRadialGradient(ec[0], ec[1], 0, ec[0], ec[1], S * 1.6);
-    g.addColorStop(0, `rgba(139,92,246,${0.32 * I + pulse * 0.3})`); g.addColorStop(0.4, `rgba(103,232,249,${0.06 * I})`); g.addColorStop(1, "rgba(0,0,0,0)");
+    g.addColorStop(0, `rgba(${V[0] | 0},${V[1] | 0},${V[2] | 0},${(0.3 * I + pulse * 0.3) * (1 - DAY * 0.6)})`); g.addColorStop(0.4, `rgba(${C[0] | 0},${C[1] | 0},${C[2] | 0},${0.07 * I})`); g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    glass(S, ox, oy, capLift, I);
 
     // pyramid particles
     SAMPLE.length = 0;
@@ -181,7 +235,7 @@ const Eye = (() => {
     drop = Math.max(0, drop - dt / 1000);
     const open = Math.max(0.04, blink);
     const lookX = smx * ER * 0.32, lookY = smy * ER * 0.18;
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = ADD;
     g = ctx.createRadialGradient(EX, EY, 0, EX, EY, ER * 1.8);
     g.addColorStop(0, `rgba(230,220,255,${0.22 * I + pulse * 0.4})`); g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(EX, EY, ER * 1.8, 0, 6.29); ctx.fill();
@@ -189,7 +243,7 @@ const Eye = (() => {
     for (let i = 0; i < 140; i++) {
       const u = i / 140 * 2 - 1, top = i % 2 ? 1 : -1;
       const ex = EX + u * ER, ey = EY + top * (1 - u * u) * ER * 0.55 * open;
-      ctx.fillStyle = `rgba(236,233,255,${(0.55 + 0.35 * Math.sin(t * 3 + i)) * (0.5 + 0.5 * I)})`;
+      ctx.fillStyle = DAY > 0.5 ? `rgba(40,26,90,${(0.6 + 0.3 * Math.sin(t * 3 + i)) * (0.5 + 0.5 * I)})` : `rgba(236,233,255,${(0.55 + 0.35 * Math.sin(t * 3 + i)) * (0.5 + 0.5 * I)})`;
       const z = 1.6 * dpr; ctx.fillRect(ex - z / 2, ey - z / 2, z, z);
     }
     // iris
@@ -207,7 +261,7 @@ const Eye = (() => {
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(IX, IY, IR, 0, 6.29); ctx.fill();
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = `rgba(4,3,10,${0.95 * Math.min(1, I * 1.4)})`; ctx.beginPath(); ctx.arc(IX, IY, IR * (0.38 - pulse * 0.12), 0, 6.29); ctx.fill();
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = DAY > 0.5 ? "source-over" : "lighter";
     ctx.fillStyle = `rgba(255,255,255,${0.9 * I})`; ctx.beginPath(); ctx.arc(IX + IR * 0.22, IY - IR * 0.22, IR * 0.1, 0, 6.29); ctx.fill();
     ctx.restore();
     ctx.globalCompositeOperation = "source-over";
@@ -245,7 +299,7 @@ const Eye = (() => {
       adRaf = requestAnimationFrame(tick);
       const dt = 1 / 60; adT += dt;
       fxc.clearRect(0, 0, innerWidth, innerHeight);
-      fxc.globalCompositeOperation = "lighter";
+      fxc.globalCompositeOperation = DAY > 0.5 ? "source-over" : "lighter";
       let alive = 0, arrived = 0;
       for (const q of AD) {
         q.k += dt * 0.9 * q.s;
@@ -299,5 +353,6 @@ const Eye = (() => {
     pulse(k = 1) { pulse = Math.min(1.4, pulse + k); },
     flow(sec = 1.5) { flowing = Math.max(flowing, sec); },
     blink() { blink = 0; },
+    mode(day) { DAYT = day ? 1 : 0; },
   };
 })();
