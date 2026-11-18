@@ -13,7 +13,8 @@ const LOGO = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill
 
 const Eye = (() => {
   let cv, ctx, W = 0, H = 0, dpr = 1, raf = 0, t0 = performance.now();
-  const P = [], STARS = [], DUST = [], FLOW = [];
+  const P = [], STARS = [], DUST = [], FLOW = [], SAMPLE = [];
+  let drop = 0, fx = null, fxc = null, eyeXY = [0, 0];
   const V = [167, 139, 250], C = [103, 232, 249], WH = [236, 233, 255];
   let rotY = 0, rotX = -0.12, velY = 0.0022, tRX = -0.12, mx = 0, my = 0, smx = 0, smy = 0;
   let drag = null, pulse = 0, flowing = 0, blink = 1, nextBlink = 3000;
@@ -61,7 +62,12 @@ const Eye = (() => {
       const th = Math.random() * 6.28, ph = Math.acos(rnd(-1, 1)), r = rnd(6, 14);
       STARS.push({ o: [r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)], b: rnd(0.15, 0.7), tw: Math.random() * 6.28 });
     }
-    for (let i = 0; i < 260; i++) DUST.push({ a: Math.random() * 6.28, r: rnd(1.9, 2.6), y: rnd(-0.15, 0.15), s: rnd(0.15, 0.45) * (Math.random() < .5 ? 1 : 1.2), b: rnd(0.25, 0.9) });
+    // orbit rings: a few tilted bands of particles spinning around the pyramid
+    const RINGS = [[2.15, 0.18, 0.0, 520], [2.75, -0.32, 1.2, 420], [3.4, 0.5, 2.3, 360], [1.75, -0.08, 0.6, 260]];
+    for (const [R, tilt, rot, n] of RINGS) for (let i = 0; i < n; i++)
+      DUST.push({ a: Math.random() * 6.28, r: R + rnd(-0.22, 0.22), y: rnd(-0.08, 0.08), tilt, rot, s: rnd(0.12, 0.4) * (R < 2.5 ? 1.25 : 0.8), b: rnd(0.2, 0.95) });
+    // wide swirl that fills the page
+    for (let i = 0; i < 700; i++) DUST.push({ a: Math.random() * 6.28, r: rnd(3.6, 9), y: rnd(-2.6, 2.6), tilt: 0, rot: 0, s: rnd(0.03, 0.12), b: rnd(0.08, 0.45), far: 1 });
   }
 
   function resize() {
@@ -129,6 +135,7 @@ const Eye = (() => {
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
     // pyramid particles
+    SAMPLE.length = 0;
     for (const p of P) {
       let [x, y, z] = p.o;
       if (p.kind === "cap") y += capLift;
@@ -141,15 +148,19 @@ const Eye = (() => {
       ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${a})`;
       const z2 = (p.b > 0.5 ? 1.7 : 1.2) * dpr * f;
       ctx.fillRect(X - z2 / 2, Y - z2 / 2, z2, z2);
+      if (p.b > 0.5 && (p.j * 100 | 0) % 3 === 0) SAMPLE.push([X / dpr, Y / dpr]);
     }
 
     // orbit dust
     for (const d of DUST) {
-      d.a += d.s * dt / 1000 * (1 + flowing * 2);
-      const [X, Y, f] = proj(Math.cos(d.a) * d.r, d.y - 0.25 + Math.sin(d.a * 3) * 0.05, Math.sin(d.a) * d.r, S, ox, oy);
+      d.a += d.s * dt / 1000 * (1 + flowing * 2 + drop * 3);
+      let x = Math.cos(d.a) * d.r, y = d.y - 0.25 + Math.sin(d.a * 3) * 0.05, z = Math.sin(d.a) * d.r;
+      if (d.tilt) { const c = Math.cos(d.tilt), s_ = Math.sin(d.tilt), cr = Math.cos(d.rot), sr = Math.sin(d.rot); const y2 = y * c - z * s_, z2 = y * s_ + z * c; y = y2; z = z2; const x2 = x * cr - z * sr; z = x * sr + z * cr; x = x2; }
+      const [X, Y, f] = proj(x, y, z, S, ox, oy);
+      if (f <= 0) continue;
       const col = mix(V, C, (Math.sin(d.a) + 1) / 2);
-      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${d.b * 0.55 * (0.4 + 0.6 * I) * Math.max(0.2, f - 0.6)})`;
-      const z = 1.3 * dpr * f; ctx.fillRect(X, Y, z, z);
+      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${Math.min(1, d.b * (d.far ? 0.75 : 1.25) * (0.45 + 0.55 * I) * Math.max(0.3, f - 0.35))})`;
+      const zz = (d.far ? 1.3 : 1.8) * dpr * f; ctx.fillRect(X, Y, zz, zz);
     }
 
     // telepathic flow: particles rising into the eye
@@ -166,6 +177,8 @@ const Eye = (() => {
 
     // the eye (billboard, watches the cursor)
     const ER = S * 0.34 * ec[2], EX = ec[0], EY = ec[1];
+    eyeXY = [EX / dpr, EY / dpr];
+    drop = Math.max(0, drop - dt / 1000);
     const open = Math.max(0.04, blink);
     const lookX = smx * ER * 0.32, lookY = smy * ER * 0.18;
     ctx.globalCompositeOperation = "lighter";
@@ -206,7 +219,71 @@ const Eye = (() => {
     if (drag) { const dx = p.clientX - drag.x; rotY += dx * 0.006; velY = dx * 0.0015; drag.x = p.clientX; }
   }
 
+  // ---- AirDrop: the pyramid's particles stream into the button that was pressed
+  let AD = [], RIPPLES = [], adRaf = 0, adT = 0;
+  function fxSize() { const d = Math.min(devicePixelRatio || 1, 2); fx.width = innerWidth * d; fx.height = innerHeight * d; fxc.setTransform(d, 0, 0, d, 0, 0); }
+  function airdrop(el, done) {
+    if (!fx) {
+      fx = document.createElement("canvas");
+      fx.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50";
+      document.body.append(fx); fxc = fx.getContext("2d"); fxSize(); addEventListener("resize", fxSize);
+    }
+    const r = el.getBoundingClientRect(), tx = r.left + r.width / 2, ty = r.top + r.height / 2;
+    const src = SAMPLE.length ? SAMPLE : [eyeXY];
+    pulse = Math.min(1.4, pulse + 1.2); drop = 2.2; blink = 0;
+    RIPPLES.push({ x: eyeXY[0], y: eyeXY[1], t: 0, d: 0 });
+    const n = Math.min(900, Math.max(420, src.length));
+    for (let i = 0; i < n; i++) {
+      const [sx, sy] = src[(Math.random() * src.length) | 0];
+      const mx_ = (sx + tx) / 2 + rnd(-260, 260), my_ = Math.min(sy, ty) - rnd(40, 260);
+      AD.push({ sx: sx + rnd(-6, 6), sy: sy + rnd(-6, 6), mx: mx_, my: my_, tx: tx + rnd(-r.width * 0.32, r.width * 0.32), ty: ty + rnd(-r.height * 0.25, r.height * 0.25),
+        k: -rnd(0, 0.55), s: rnd(0.75, 1.25), c: Math.random(), z: rnd(1, 2.4) });
+    }
+    adT = 0;
+    let rip = false;
+    const tick = now => {
+      adRaf = requestAnimationFrame(tick);
+      const dt = 1 / 60; adT += dt;
+      fxc.clearRect(0, 0, innerWidth, innerHeight);
+      fxc.globalCompositeOperation = "lighter";
+      let alive = 0, arrived = 0;
+      for (const q of AD) {
+        q.k += dt * 0.9 * q.s;
+        if (q.k < 0) { alive++; continue; }
+        const k = Math.min(1, q.k), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        const x = (1 - e) * (1 - e) * q.sx + 2 * (1 - e) * e * q.mx + e * e * q.tx;
+        const y = (1 - e) * (1 - e) * q.sy + 2 * (1 - e) * e * q.my + e * e * q.ty;
+        const col = mix(V, C, q.c), a = k < 1 ? 0.9 : Math.max(0, 1 - (q.k - 1) * 4);
+        fxc.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${a})`;
+        fxc.fillRect(x - q.z / 2, y - q.z / 2, q.z, q.z);
+        if (k < 1) { // short trail
+          const e2 = Math.max(0, e - 0.04), x2 = (1 - e2) * (1 - e2) * q.sx + 2 * (1 - e2) * e2 * q.mx + e2 * e2 * q.tx, y2 = (1 - e2) * (1 - e2) * q.sy + 2 * (1 - e2) * e2 * q.my + e2 * e2 * q.ty;
+          fxc.strokeStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${a * 0.35})`; fxc.lineWidth = q.z * 0.6; fxc.beginPath(); fxc.moveTo(x2, y2); fxc.lineTo(x, y); fxc.stroke();
+        } else arrived++;
+        if (q.k < 1.25) alive++;
+      }
+      if (!rip && arrived > AD.length * 0.35) { rip = true; RIPPLES.push({ x: tx, y: ty, t: 0, d: 1 }); done && done(); }
+      // AirDrop rings
+      for (const R of RIPPLES) {
+        R.t += dt;
+        for (let i = 0; i < 3; i++) {
+          const tt = R.t - i * 0.16; if (tt < 0) continue;
+          const rad = 16 + tt * (R.d ? 260 : 340), a = Math.max(0, 0.55 - tt * 0.5);
+          if (a <= 0) continue;
+          const g = fxc.createRadialGradient(R.x, R.y, rad * 0.86, R.x, R.y, rad);
+          g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.7, `rgba(103,232,249,${a * 0.35})`); g.addColorStop(1, `rgba(167,139,250,${a})`);
+          fxc.strokeStyle = g; fxc.lineWidth = 2; fxc.beginPath(); fxc.arc(R.x, R.y, rad, 0, 6.29); fxc.stroke();
+        }
+      }
+      RIPPLES = RIPPLES.filter(R => R.t < 1.6);
+      if (!alive && !RIPPLES.length) { cancelAnimationFrame(adRaf); adRaf = 0; AD = []; fxc.clearRect(0, 0, innerWidth, innerHeight); }
+      AD = AD.filter(q => q.k < 1.3);
+    };
+    if (!adRaf) adRaf = requestAnimationFrame(tick);
+  }
+
   return {
+    airdrop,
     init(canvas) {
       cv = canvas; ctx = cv.getContext("2d");
       build(); resize();

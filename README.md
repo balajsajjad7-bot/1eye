@@ -6,9 +6,10 @@
 
 <p align="center">
   <a href="https://1eye.dpdns.org"><b>Website</b></a> ·
-  <a href="releases/1EYE-Windows-v1.7.zip"><b>Download for Windows</b></a> ·
-  <a href="releases/1EYE-Android-v1.7.apk"><b>Download for Android</b></a> ·
-  <a href="releases/SHA256SUMS.txt">Checksums</a>
+  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest/download/1EYE.exe"><b>Windows</b></a> ·
+  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest/download/1EYE.apk"><b>Android</b></a> ·
+  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest"><b>macOS · Linux</b></a> ·
+  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest/download/SHA256SUMS.txt">Checksums</a>
 </p>
 
 ---
@@ -21,6 +22,8 @@
 - **Wi-Fi or anywhere**: instant on your local network. One click opens a secure HTTPS link that works from any network (Cloudflare, localhost.run or Pinggy, with automatic fallback). You can also point your own domain at it permanently.
 - **Your phone can be the host**: the Android app runs the same server. Share → 1EYE from any app drops files straight in.
 - **1EYE AI (Groq)**: ask about your files, chat and links, attach text files, or type `@eye` in chat. Bring your own free Groq key; it stays on the host and is never sent to devices. Model picker (GPT-OSS 120B / 20B or any Groq model ID).
+- **Cloud storage (free)**: connect Google Drive (15 GB) or any WebDAV service such as Koofr (10 GB), InfiniCLOUD (20 GB) or Nextcloud. Save files to the cloud, auto-back up everything that arrives, bring files back, and make public Drive links that work even when your PC is off. 1EYE only sees the files it puts in its own “1EYE” folder.
+- **Every platform**: Windows, Android, macOS (Apple Silicon and Intel) and Linux (x64 and ARM64). Each is a single file to download and run.
 - **8 themes**: Void, Obsidian, Aurora, Ember, Ocean, Sakura, Terminal and Frost (light), with motion settings (Full 3D / Calm / Still), sounds and desktop notifications.
 - **The look**: an interactive 3D particle eye, a glassy minimal UI, and a layout that works on desktop and mobile.
 
@@ -50,7 +53,7 @@ Found a problem? Please open an issue.
 
 ## Windows says "Unknown publisher"
 
-1EYE isn't code-signed yet, so SmartScreen may warn you. Click **More info → Run anyway**. You can check the download against [SHA256SUMS.txt](releases/SHA256SUMS.txt) or build it yourself.
+1EYE isn't code-signed yet, so SmartScreen may warn you. Click **More info → Run anyway**. You can check the download against [SHA256SUMS.txt](https://github.com/balajsajjad7-bot/1eye/releases/latest/download/SHA256SUMS.txt) or build it yourself.
 
 ## Build from source
 

@@ -3,7 +3,9 @@
 package main
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"context"
 	"crypto/rand"
 	"crypto/subtle"
@@ -30,7 +32,7 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-const version = "1.7"
+const version = "1.8"
 
 //go:embed web/*
 var webFS embed.FS
@@ -84,6 +86,7 @@ type saved struct {
 	Perm    permConf   `json:"permanent"`
 	Host    string     `json:"hostName,omitempty"`
 	AI      aiConf     `json:"ai"`
+	Cloud   cloudConf  `json:"cloud"`
 }
 
 // ---------------------------------------------------------------- state
@@ -148,7 +151,7 @@ func save() { // mu held
 	for t, d := range devices {
 		ds = append(ds, savedDev{t, *d})
 	}
-	b, _ := json.MarshalIndent(saved{chat, links, ds, pin, perm, savedHostName, ai}, "", " ")
+	b, _ := json.MarshalIndent(saved{chat, links, ds, pin, perm, savedHostName, ai, cloud}, "", " ")
 	tmp := filepath.Join(dataDir, "data.json.tmp")
 	if os.WriteFile(tmp, b, 0600) == nil {
 		os.Rename(tmp, filepath.Join(dataDir, "data.json"))
@@ -173,6 +176,7 @@ func load() {
 		}
 		perm = s.Perm
 		ai = s.AI
+		cloud = s.Cloud
 		savedHostName = s.Host
 	}
 }
@@ -431,8 +435,10 @@ func downloadCF() (string, error) {
 		u, name = base+"cloudflared-windows-"+arch+".exe", "cloudflared.exe"
 	case "linux":
 		u, name = base+"cloudflared-linux-"+arch, "cloudflared"
+	case "darwin":
+		u, name = base+"cloudflared-darwin-"+arch+".tgz", "cloudflared"
 	default:
-		return "", fmt.Errorf("on Mac run: brew install cloudflared")
+		return "", fmt.Errorf("Cloudflare tunnel isn't available on %s", runtime.GOOS)
 	}
 	os.MkdirAll(binDir, 0755)
 	dest := filepath.Join(binDir, name)
@@ -470,7 +476,12 @@ func downloadCF() (string, error) {
 		}
 	}
 	f.Close()
-	if err := os.Rename(dest+".part", dest); err != nil {
+	if strings.HasSuffix(u, ".tgz") { // macOS ships cloudflared inside a .tgz
+		if err := untarOne(dest+".part", dest); err != nil {
+			return "", err
+		}
+		os.Remove(dest + ".part")
+	} else if err := os.Rename(dest+".part", dest); err != nil {
 		return "", err
 	}
 	os.Chmod(dest, 0755)
@@ -672,7 +683,7 @@ func handleSync(w http.ResponseWriter, r *http.Request) {
 	sort.SliceStable(devs[1:], func(a, b int) bool { return devs[1+a]["joined"].(int64) < devs[1+b]["joined"].(int64) })
 	out := map[string]any{
 		"v": ver, "me": map[string]any{"id": myID, "name": myName, "host": host}, "hostName": hostName,
-		"chat": chat, "links": links, "files": files, "devices": devs, "version": version, "ai": aiPublicState(host),
+		"chat": chat, "links": links, "files": files, "devices": devs, "version": version, "ai": aiPublicState(host), "cloud": cloudPublicState(host),
 	}
 	if host {
 		l := logs
@@ -802,6 +813,7 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 	os.Rename(tmp, dest)
 	_, from := whoName(d)
 	logf("RECEIVED  %s  ← %s", filepath.Base(dest), from)
+	autoBackup(filepath.Base(dest))
 	scanFiles()
 	writeJSON(w, map[string]any{"ok": true})
 }
@@ -981,6 +993,9 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 	case "ai":
 		handleHostAI(w, r)
 		return
+	case "cloud":
+		handleHostCloud(w, r)
+		return
 	case "permanent":
 		handlePermanent(w, r)
 		return
@@ -1086,6 +1101,10 @@ func main() {
 	mux.HandleFunc("/api/logout", handleLogout)
 	mux.HandleFunc("/api/rename", handleSelfRename)
 	mux.HandleFunc("/api/ai", handleAI)
+	mux.HandleFunc("/api/cloud", handleCloud)
+	mux.HandleFunc("/cloud/f/", handleCloudFile)
+	mux.HandleFunc("/cloud/google/start", hostOnly(handleGoogleStart))
+	mux.HandleFunc("/oauth/google", hostOnly(handleGoogleCallback))
 	mux.HandleFunc("/api/sync", handleSync)
 	mux.HandleFunc("/api/chat", handleChat)
 	mux.HandleFunc("/api/link", handleLink)
@@ -1232,4 +1251,33 @@ func replaceRunning(p int) bool {
 		}
 	}
 	return false
+}
+
+// untarOne extracts the first regular file of a .tgz into dest.
+func untarOne(src, dest string) error {
+	f, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	tr := tar.NewReader(gz)
+	for {
+		h, err := tr.Next()
+		if err != nil {
+			return fmt.Errorf("tunnel download was damaged: %v", err)
+		}
+		if h.Typeflag == tar.TypeReg {
+			out, err := os.Create(dest)
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(out, tr)
+			out.Close()
+			return err
+		}
+	}
 }

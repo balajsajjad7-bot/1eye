@@ -1,8 +1,8 @@
 1 ICON "1eye.ico"
 1 24 "1eye.manifest"
 1 VERSIONINFO
-FILEVERSION 1,7,0,0
-PRODUCTVERSION 1,7,0,0
+FILEVERSION 1,8,0,0
+PRODUCTVERSION 1,8,0,0
 FILEFLAGSMASK 0x3fL
 FILEFLAGS 0x0L
 FILEOS 0x40004L
@@ -15,12 +15,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "1EYE"
       VALUE "FileDescription", "1EYE - Telepathic Data Transfer"
-      VALUE "FileVersion", "1.7.0.0"
+      VALUE "FileVersion", "1.8.0.0"
       VALUE "InternalName", "1EYE"
       VALUE "LegalCopyright", "Copyright (c) 2026 Balaj. MIT License."
       VALUE "OriginalFilename", "1EYE.exe"
       VALUE "ProductName", "1EYE"
-      VALUE "ProductVersion", "1.7.0.0"
+      VALUE "ProductVersion", "1.8.0.0"
     END
   END
   BLOCK "VarFileInfo"

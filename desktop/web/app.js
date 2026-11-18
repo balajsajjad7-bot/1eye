@@ -5,6 +5,11 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 
 const I = (d, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
 const ICON = {
+  cloud: I('<path d="M7 18a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 19 9.5a4.25 4.25 0 0 1-.75 8.5Z"/>'),
+  cloudup: I('<path d="M7 18a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 19 9.5a4.25 4.25 0 0 1-.75 8.5"/><path d="M12 20v-8"/><path d="m9 15 3-3 3 3"/>'),
+  clouddown: I('<path d="M7 18a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 19 9.5a4.25 4.25 0 0 1-.75 8.5"/><path d="M12 12v8"/><path d="m9 17 3 3 3-3"/>'),
+  share: I('<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>'),
+  refresh: I('<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/>'),
   transfer: I('<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 15v3a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-3"/>'),
   chat: I('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12Z"/>'),
   link: I('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
@@ -121,6 +126,10 @@ function onUpdate(prev) {
     const nf = (S.files || []).filter(f => !pf.has(f.name));
     if (nf.length && !uploads.size) { Eye.flow(1.4); Eye.pulse(0.5); toast(nf.length === 1 ? `Arrived: ${nf[0].name}` : `${nf.length} files arrived`); }
   }
+  for (const j of (S.cloud || {}).jobs || []) if (j.done && !cloudSeenJobs.has(j.id)) {
+    cloudSeenJobs.add(j.id);
+    if (!firstSync) { toast(j.err ? `${j.name}: ${j.err}` : j.dir === "up" ? `Saved to cloud: ${j.name}` : `Brought into 1EYE: ${j.name}`); if (page === "cloud") loadCloud(false); }
+  }
   firstSync = false;
   if (page === "chat" && (S.chat || []).length) markSeen();
   renderSide();
@@ -133,7 +142,7 @@ function unread() { return (S.chat || []).filter(m => m.ts > seenChat && m.from 
 function renderSide() {
   const host = S.me.host, u = unread();
   const items = [["transfer", "Transfer"], ["chat", "Chat"], ["links", "Links"]];
-  items.push(["ai", "AI"]);
+  items.push(["ai", "AI"], ["cloud", "Cloud"]);
   items.push(["devices", "Devices"]);
   if (host) items.push(["control", "Control"]);
   items.push(["settings", "Settings"], ["about", "About"]);
@@ -154,7 +163,7 @@ addEventListener("hashchange", () => { page = (location.hash || "#transfer").sli
 
 function renderPage(soft) {
   const main = $("#main");
-  const fn = { transfer: pTransfer, chat: pChat, links: pLinks, ai: pAI, devices: pDevices, control: pControl, settings: pSettings, about: pAbout }[page] || pTransfer;
+  const fn = { transfer: pTransfer, chat: pChat, links: pLinks, ai: pAI, cloud: pCloud, devices: pDevices, control: pControl, settings: pSettings, about: pAbout }[page] || pTransfer;
   if (page === "control" && !S.me.host) { location.hash = "#transfer"; return; }
   // soft re-render: keep inputs/focus where possible
   if (soft && main.dataset.page === page) { fn(main, true); return; }
@@ -224,7 +233,7 @@ function drawFiles() {
     box.innerHTML = `<div class="empty" style="grid-column:1/-1">${ICON.eye}<div>${(S.files || []).length ? "Nothing matches." : "Nothing shared yet. The eye is waiting."}</div></div>`;
     return;
   }
-  const key = list.map(f => f.name + f.mtime).join("|") + selMode + [...sel].join("/");
+  const key = list.map(f => f.name + f.mtime).join("|") + selMode + [...sel].join("/") + cloudAccts().length;
   if (box.dataset.key === key) return;
   box.dataset.key = key;
   box.innerHTML = list.map(f => {
@@ -233,12 +242,13 @@ function drawFiles() {
     const th = f.kind === "image" ? `<img loading="lazy" src="${u}?view=1" alt="">` : `<span class="big" style="color:hsl(${hue(f.kind) % 360} 80% 75%)">${ICON[f.kind] || ICON.other}</span>`;
     return `<div class="fc ${sel.has(f.name) ? "sel" : ""}" data-n="${esc(f.name)}">
       <div class="thumb">${th}<span class="ext">${esc(ext)}</span></div><span class="tick"></span>
-      <div class="acts"><a class="btn icon sm" href="${u}" title="Download" onclick="event.stopPropagation()">${ICON.down}</a><button class="btn icon sm danger" title="Delete" data-del>${ICON.trash}</button></div>
+      <div class="acts"><a class="btn icon sm" href="${u}" title="Download" onclick="event.stopPropagation()">${ICON.down}</a>${cloudAccts().length ? `<button class="btn icon sm" title="Save to cloud" data-cl>${ICON.cloudup}</button>` : ""}<button class="btn icon sm danger" title="Delete" data-del>${ICON.trash}</button></div>
       <div class="info"><div class="nm" title="${esc(f.name)}">${esc(f.name)}</div><div class="mt">${size(f.size)} · ${ago(f.mtime)}</div></div></div>`;
   }).join("");
   $$(".fc", box).forEach(el => {
     const n = el.dataset.n;
     el.onclick = e => {
+      if (e.target.closest("[data-cl]")) { e.stopPropagation(); pickCloud(e.target.closest("[data-cl]"), a => cloudOp({ op: "save", acct: a.id, file: n }, `Saving to ${a.name}…`)); return; }
       if (e.target.closest("[data-del]")) { e.stopPropagation(); if (confirm(`Delete "${n}" for everyone?`)) fetch("/del/" + encodeURIComponent(n), { method: "POST" }); return; }
       if (selMode) { sel.has(n) ? sel.delete(n) : sel.add(n); drawFiles(); return; }
       preview((S.files || []).find(f => f.name === n));
@@ -692,3 +702,145 @@ function pSettings(main, soft) {
 Eye.init($("#space"));
 applyPrefs();
 sync();
+
+// ======================================================= CLOUD
+let cloudLists = {}, cloudLoading = false, cloudSeenJobs = new Set(), cloudAdd = "";
+const DAV = {
+  koofr: { name: "Koofr", url: "https://app.koofr.net/dav/Koofr", note: "10 GB free. Use your Koofr email and an app password from Koofr → Preferences → Password → App passwords." },
+  infini: { name: "InfiniCLOUD", url: "https://", note: "20 GB free. Turn on Apps Connection in InfiniCLOUD → My Page, then copy the WebDAV URL, ID and app password it shows." },
+  nextcloud: { name: "Nextcloud", url: "https://your-server/remote.php/dav/files/USERNAME", note: "Any Nextcloud: use an app password from Settings → Security." },
+  custom: { name: "", url: "https://", note: "Any WebDAV storage. Paste the folder address, username and password." },
+};
+function cloudAccts() { const C = S.cloud || {}; return C.available ? (C.accounts || []) : []; }
+async function cloudOp(body, msg) {
+  if (msg) toast(msg);
+  const r = await api("/api/cloud", body);
+  if (!r.ok) toast(r.err || "Cloud action failed");
+  return r;
+}
+function pickCloud(btn, fn) {
+  const A = cloudAccts();
+  if (A.length === 1) return fn(A[0]);
+  $(".cmenu")?.remove();
+  const m = document.createElement("div"); m.className = "cmenu glass";
+  m.innerHTML = `<div class="label" style="padding:6px 10px">Save to</div>` + A.map((a, i) => `<button data-i="${i}">${ICON.cloud} ${esc(a.name)}<small>${esc(a.email || "")}</small></button>`).join("");
+  document.body.append(m);
+  const r = btn.getBoundingClientRect();
+  m.style.left = Math.min(innerWidth - 240, r.left) + "px"; m.style.top = (r.bottom + 6) + "px";
+  m.onclick = e => { const b = e.target.closest("[data-i]"); if (b) { fn(A[+b.dataset.i]); m.remove(); } };
+  setTimeout(() => addEventListener("click", function off(e) { if (!m.contains(e.target)) { m.remove(); removeEventListener("click", off); } }), 0);
+}
+async function loadCloud(force) {
+  if (cloudLoading) return; cloudLoading = true;
+  const r = await fetch("/api/cloud" + (force ? "?refresh=1" : ""), { cache: "no-store" }).then(r => r.json()).catch(() => ({}));
+  cloudLoading = false;
+  if (r.ok) cloudLists = r.lists || {};
+  if (page === "cloud") drawCloud();
+}
+function pCloud(main, soft) {
+  const C = S.cloud || {};
+  if (!soft) {
+    main.innerHTML = `<div class="page">
+      <div class="head"><div><div class="label">Free storage · Google Drive &amp; WebDAV</div><h1>Cloud</h1><p>Keep copies in your own free cloud. Files there stay reachable even when this ${(S.host || {}).platform === "android" ? "phone" : "PC"} is off.</p></div><div class="sp"></div>
+        <button class="btn sm" id="crf">${ICON.refresh} Refresh</button></div>
+      <div id="cjobs" class="queue" style="margin:0 0 16px"></div>
+      <div id="caccts" style="display:grid;gap:16px"></div>
+      ${S.me.host ? `<div class="glass card" id="cadd" style="margin-top:16px"></div>` : ""}</div>`;
+    Eye.anchor(null, 0.3);
+    $("#crf").onclick = () => { toast("Refreshing…"); loadCloud(true); };
+    loadCloud(false);
+  }
+  drawCloud();
+}
+function drawCloud() {
+  const C = S.cloud || {}, host = S.me.host;
+  const jb = $("#cjobs"); if (!jb) return;
+  jb.innerHTML = (C.jobs || []).filter(j => !j.done || j.err).map(j => `<div class="qi glass"><div class="ic">${j.dir === "up" ? ICON.cloudup : ICON.clouddown}</div>
+    <div style="min-width:0"><div class="nm">${esc(j.name)}</div><div class="sub" style="${j.err ? "color:var(--bad)" : ""}">${j.err ? esc(j.err) : (j.dir === "up" ? "Uploading to cloud · " : "Bringing into 1EYE · ") + Math.round(j.pct * 100) + "%"}</div><div class="prog"><i style="width:${Math.round(j.pct * 100)}%"></i></div></div><span></span></div>`).join("");
+  const box = $("#caccts");
+  if (!C.available) { box.innerHTML = `<div class="empty">${ICON.cloud}<div><b style="color:var(--ink)">Cloud is off for this device</b><br>The host hasn't shared cloud storage with other devices.</div></div>`; return; }
+  const A = C.accounts || [];
+  if (!A.length) box.innerHTML = `<div class="empty">${ICON.cloud}<div><b style="color:var(--ink)">No cloud connected yet</b><br>${host ? "Connect Google Drive or a free WebDAV service below." : "The host hasn't connected any cloud storage."}</div></div>`;
+  else {
+    const key = JSON.stringify([A, cloudLists, C.auto, host]);
+    if (box.dataset.k !== key) {
+      box.dataset.k = key;
+      box.innerHTML = A.map(a => {
+        const L = cloudLists[a.id], files = (L && L.files) || [];
+        const pct = a.cap ? Math.min(100, a.used / a.cap * 100) : 0;
+        return `<div class="glass card cacct" data-a="${esc(a.id)}">
+          <div class="chead"><div class="cico ${a.kind}">${a.kind === "gdrive" ? GDRIVE : ICON.cloud}</div>
+            <div style="min-width:0;flex:1"><b>${esc(a.name)}</b><div class="muted" style="font-size:12.5px">${esc(a.email || (a.kind === "webdav" ? "WebDAV" : ""))} · ${files.length} file${files.length === 1 ? "" : "s"} in “1EYE”${a.cap ? ` · ${size(a.used)} of ${size(a.cap)} used` : ""}</div>
+            ${a.cap ? `<div class="prog" style="max-width:320px"><i style="width:${pct}%"></i></div>` : ""}</div>
+            ${host ? `<label class="tog" title="Copy every new file here automatically"><input type="checkbox" data-auto ${C.auto === a.id ? "checked" : ""}><span></span>Auto-backup</label>
+            <button class="btn icon sm danger" title="Disconnect" data-rm>${ICON.x}</button>` : ""}</div>
+          ${a.err || (L && L.err) ? `<div class="cerr">${esc(a.err || L.err)}</div>` : ""}
+          ${!L ? `<div class="muted" style="padding:14px 4px">Loading…</div>` : !files.length ? `<div class="muted" style="padding:14px 4px">Empty. Use the ${ICON.cloudup.replace("<svg", '<svg width="14" height="14" style="vertical-align:-2px"')} button on any file in Transfer to save it here.</div>` :
+          `<div class="clist">${files.map(f => `<div class="crow" data-id="${esc(f.id)}">
+            <span class="ck" style="color:hsl(${hue(f.name.split(".").pop()) % 360} 80% 75%)">${ICON.other}</span>
+            <div style="min-width:0;flex:1"><div class="nm" title="${esc(f.name)}">${esc(f.name)}</div><div class="mt">${size(f.size)} · ${ago(f.mtime)}${f.public ? ` · <span style="color:var(--v)">public link on</span>` : ""}</div></div>
+            <a class="btn icon sm" title="Download" href="/cloud/f/${encodeURIComponent(a.id)}/${encodeURIComponent(f.id)}">${ICON.down}</a>
+            <button class="btn icon sm" title="Bring into 1EYE (share with all devices)" data-op="fetch">${ICON.clouddown}</button>
+            ${a.share ? `<button class="btn icon sm ${f.public ? "primary" : ""}" title="${f.public ? "Copy public link (works when this PC is off)" : "Create public link"}" data-op="share">${ICON.share}</button>` : ""}
+            <button class="btn icon sm danger" title="Delete from cloud" data-op="delete">${ICON.trash}</button></div>`).join("")}</div>`}
+        </div>`;
+      }).join("");
+      $$(".cacct", box).forEach(card => {
+        const a = A.find(x => x.id === card.dataset.a);
+        const auto = $("[data-auto]", card); if (auto) auto.onchange = () => api("/host/cloud", { op: "auto", id: a.id, on: auto.checked }).then(() => toast(auto.checked ? `New files will be saved to ${a.name}` : "Auto-backup off"));
+        const rm = $("[data-rm]", card); if (rm) rm.onclick = () => confirm(`Disconnect ${a.name}? Files already in the cloud stay there.`) && api("/host/cloud", { op: "remove", id: a.id });
+        $$("[data-op]", card).forEach(b => b.onclick = async () => {
+          const id = b.closest(".crow").dataset.id, f = (cloudLists[a.id].files || []).find(x => x.id === id), op = b.dataset.op;
+          if (op === "fetch") cloudOp({ op, acct: a.id, id }, `Bringing ${f.name} into 1EYE…`);
+          if (op === "delete" && confirm(`Delete "${f.name}" from ${a.name}?${a.kind === "gdrive" ? " (It goes to your Drive trash.)" : ""}`)) { await cloudOp({ op, acct: a.id, id }); loadCloud(true); }
+          if (op === "share") {
+            if (f.public) { copy(f.public); return; }
+            if (!confirm(`Make a public link for "${f.name}"? Anyone with the link can download it, even when this PC is off.`)) return;
+            const r = await cloudOp({ op, acct: a.id, id, on: true }); if (r.ok) { copy(r.link); loadCloud(true); }
+          }
+        });
+      });
+    }
+  }
+  if (host) drawCloudAdd();
+}
+const GDRIVE = `<svg viewBox="0 0 24 24" width="22" height="22"><path fill="#0f9d58" d="M8 3h8l7 12h-8z"/><path fill="#f4b400" d="M8 3 1 15l4 6 7-12z"/><path fill="#4285f4" d="M5 21h14l4-6H9z"/></svg>`;
+function drawCloudAdd() {
+  const box = $("#cadd"); if (!box) return;
+  const C = S.cloud || {};
+  const key = JSON.stringify([cloudAdd, C.googleReady, C.googleOwn, C.allowDevices]);
+  if (box.dataset.k === key) return; box.dataset.k = key;
+  const P = DAV[cloudAdd];
+  box.innerHTML = `<h3>${ICON.plus.replace("<svg", '<svg width="16" height="16"')} Add free storage</h3>
+    <div class="cprov">
+      <button class="prov" id="pg">${GDRIVE}<b>Google Drive</b><small>15 GB free</small></button>
+      <button class="prov ${cloudAdd === "koofr" ? "on" : ""}" data-p="koofr">${ICON.cloud}<b>Koofr</b><small>10 GB free</small></button>
+      <button class="prov ${cloudAdd === "infini" ? "on" : ""}" data-p="infini">${ICON.cloud}<b>InfiniCLOUD</b><small>20 GB free</small></button>
+      <button class="prov ${cloudAdd === "nextcloud" ? "on" : ""}" data-p="nextcloud">${ICON.cloud}<b>Nextcloud</b><small>your server</small></button>
+      <button class="prov ${cloudAdd === "custom" ? "on" : ""}" data-p="custom">${ICON.cloud}<b>Other WebDAV</b><small>any service</small></button>
+    </div>
+    ${cloudAdd === "google" ? `<div class="cform">
+        <p class="muted" style="margin:0 0 10px;font-size:13px">Google Drive needs a free Google app ID, made once in Google Cloud Console: create a project, enable the <b style="color:var(--ink)">Google Drive API</b>, set up the consent screen, then <b style="color:var(--ink)">Credentials → Create OAuth client ID → Desktop app</b>. Paste its ID and secret here. They stay on this PC.</p>
+        <input class="input" id="gid" placeholder="Client ID (….apps.googleusercontent.com)" autocomplete="off">
+        <input class="input" id="gsec" type="password" placeholder="Client secret" autocomplete="off">
+        <div style="display:flex;gap:8px"><button class="btn primary" id="gsave">Save and connect</button>${C.googleOwn ? `<button class="btn" id="gclear">Remove my Google app</button>` : ""}</div></div>` : ""}
+    ${P ? `<div class="cform"><p class="muted" style="margin:0 0 10px;font-size:13px">${esc(P.note)}</p>
+        <input class="input" id="dn" placeholder="Name (e.g. ${esc(P.name || "My storage")})" value="${esc(P.name)}">
+        <input class="input" id="du" placeholder="WebDAV address" value="${esc(P.url)}">
+        <input class="input" id="dus" placeholder="Username or email" autocomplete="off">
+        <input class="input" id="dpw" type="password" placeholder="App password" autocomplete="new-password">
+        <button class="btn primary" id="dgo">Connect</button></div>` : ""}
+    <label class="tog" style="margin-top:6px"><input type="checkbox" id="cdev" ${C.allowDevices ? "checked" : ""}><span></span>Let signed-in devices use the cloud (save, download, links)</label>`;
+  const startG = () => { const u = "/cloud/google/start"; if ((S.host || {}).platform === "android") location.href = u; else window.open(u, "_blank"); toast("Finish signing in to Google in the new tab"); };
+  $("#pg").onclick = () => { if (C.googleReady && cloudAdd !== "google") startG(); else { cloudAdd = cloudAdd === "google" ? "" : "google"; box.dataset.k = ""; drawCloudAdd(); } };
+  $$("[data-p]", box).forEach(b => b.onclick = () => { cloudAdd = cloudAdd === b.dataset.p ? "" : b.dataset.p; box.dataset.k = ""; drawCloudAdd(); });
+  if ($("#gsave")) $("#gsave").onclick = async () => { const id = $("#gid").value.trim(), sec = $("#gsec").value.trim(); if (!id.endsWith(".apps.googleusercontent.com")) return toast("That doesn't look like a Google client ID"); await api("/host/cloud", { op: "googleApp", clientId: id, secret: sec }); cloudAdd = ""; startG(); };
+  if ($("#gclear")) $("#gclear").onclick = () => api("/host/cloud", { op: "googleApp", clientId: "", secret: "" });
+  if ($("#dgo")) $("#dgo").onclick = async () => {
+    const b = $("#dgo"); b.disabled = true; b.textContent = "Connecting…";
+    const r = await api("/host/cloud", { op: "webdav", name: $("#dn").value, url: $("#du").value, user: $("#dus").value, pass: $("#dpw").value });
+    b.disabled = false; b.textContent = "Connect";
+    if (r.ok) { toast("Connected"); cloudAdd = ""; box.dataset.k = ""; loadCloud(true); } else toast(r.err || "Couldn't connect");
+  };
+  $("#cdev").onchange = e => api("/host/cloud", { op: "allowDevices", on: e.target.checked });
+}
