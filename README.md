@@ -6,10 +6,10 @@
 
 <p align="center">
   <a href="https://1eye.dpdns.org"><b>Website</b></a> ·
-  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest/download/1EYE.exe"><b>Windows</b></a> ·
-  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest/download/1EYE.apk"><b>Android</b></a> ·
-  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest"><b>macOS · Linux</b></a> ·
-  <a href="https://github.com/balajsajjad7-bot/1eye/releases/latest/download/SHA256SUMS.txt">Checksums</a>
+  <a href="https://github.com/balajsajjad7-bot/1eye/raw/downloads/1EYE.exe"><b>Windows</b></a> ·
+  <a href="https://github.com/balajsajjad7-bot/1eye/raw/downloads/1EYE.apk"><b>Android</b></a> ·
+  <a href="https://github.com/balajsajjad7-bot/1eye/tree/downloads"><b>macOS · Linux</b></a> ·
+  <a href="https://github.com/balajsajjad7-bot/1eye/raw/downloads/SHA256SUMS.txt">Checksums</a>
 </p>
 
 ---
@@ -53,7 +53,7 @@ Found a problem? Please open an issue.
 
 ## Windows says "Unknown publisher"
 
-1EYE isn't code-signed yet, so SmartScreen may warn you. Click **More info → Run anyway**. You can check the download against [SHA256SUMS.txt](https://github.com/balajsajjad7-bot/1eye/releases/latest/download/SHA256SUMS.txt) or build it yourself.
+1EYE isn't code-signed yet, so SmartScreen may warn you. Click **More info → Run anyway**. You can check the download against [SHA256SUMS.txt](https://github.com/balajsajjad7-bot/1eye/raw/downloads/SHA256SUMS.txt) or build it yourself.
 
 ## Build from source
 
