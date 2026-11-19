@@ -1,0 +1,179 @@
+/brand.html
+  Content-Type: text/html; charset=utf-8
+
+/brand
+  Content-Type: text/html; charset=utf-8
+
+/code-signing.html
+  Content-Type: text/html; charset=utf-8
+
+/code-signing
+  Content-Type: text/html; charset=utf-8
+
+/copyright.html
+  Content-Type: text/html; charset=utf-8
+
+/copyright
+  Content-Type: text/html; charset=utf-8
+
+/data-transfer/index.html
+  Content-Type: text/html; charset=utf-8
+
+/data-transfer/
+  Content-Type: text/html; charset=utf-8
+
+/e4642368326186c1fa9822ff15239f54.txt
+  Content-Type: text/plain; charset=utf-8
+
+/favicon.png
+  Content-Type: image/png
+
+/fonts/Geist-Variable.woff2
+  Content-Type: font/woff2
+
+/fonts/SpaceMono-Regular.woff2
+  Content-Type: font/woff2
+
+/guides/access-pc-files-from-phone-anywhere.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/access-pc-files-from-phone-anywhere
+  Content-Type: text/html; charset=utf-8
+
+/guides/airdrop-for-windows.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/airdrop-for-windows
+  Content-Type: text/html; charset=utf-8
+
+/guides/index.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/
+  Content-Type: text/html; charset=utf-8
+
+/guides/iphone-to-windows-file-transfer.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/iphone-to-windows-file-transfer
+  Content-Type: text/html; charset=utf-8
+
+/guides/send-large-files-phone-to-pc.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/send-large-files-phone-to-pc
+  Content-Type: text/html; charset=utf-8
+
+/guides/share-files-without-internet.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/share-files-without-internet
+  Content-Type: text/html; charset=utf-8
+
+/guides/transfer-files-android-to-pc-without-usb.html
+  Content-Type: text/html; charset=utf-8
+
+/guides/transfer-files-android-to-pc-without-usb
+  Content-Type: text/html; charset=utf-8
+
+/icon-192.png
+  Content-Type: image/png
+
+/icon-512.png
+  Content-Type: image/png
+
+/index.html
+  Content-Type: text/html; charset=utf-8
+
+/
+  Content-Type: text/html; charset=utf-8
+
+/iris.js
+  Content-Type: application/javascript; charset=utf-8
+
+/lab.js
+  Content-Type: application/javascript; charset=utf-8
+
+/legal.html
+  Content-Type: text/html; charset=utf-8
+
+/legal
+  Content-Type: text/html; charset=utf-8
+
+/licenses.html
+  Content-Type: text/html; charset=utf-8
+
+/licenses
+  Content-Type: text/html; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/logo.svg
+  Content-Type: image/svg+xml
+
+/media/eye.jpg
+  Content-Type: image/jpeg
+
+/media/telepathic-control.jpg
+  Content-Type: image/jpeg
+
+/media/telepathic-phone.jpg
+  Content-Type: image/jpeg
+
+/media/telepathic.jpg
+  Content-Type: image/jpeg
+
+/og.png
+  Content-Type: image/png
+
+/privacy.html
+  Content-Type: text/html; charset=utf-8
+
+/privacy
+  Content-Type: text/html; charset=utf-8
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
+/security.html
+  Content-Type: text/html; charset=utf-8
+
+/security
+  Content-Type: text/html; charset=utf-8
+
+/site.css
+  Content-Type: text/css; charset=utf-8
+
+/site.webmanifest
+  Content-Type: application/manifest+json
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+
+/terms.html
+  Content-Type: text/html; charset=utf-8
+
+/terms
+  Content-Type: text/html; charset=utf-8
+
+/downloads/1EYE.exe
+  Content-Type: application/vnd.microsoft.portable-executable
+
+/downloads/1EYE.apk
+  Content-Type: application/vnd.android.package-archive
+
+/downloads/SHA256SUMS.txt
+  Content-Type: text/plain; charset=utf-8
+
+/downloads/1EYE-Linux-arm64
+  Content-Type: application/octet-stream
+
+/downloads/1EYE-Linux-x64
+  Content-Type: application/octet-stream
+
+/downloads/1EYE-macOS-AppleSilicon
+  Content-Type: application/octet-stream
+
+/downloads/1EYE-macOS-Intel
+  Content-Type: application/octet-stream
