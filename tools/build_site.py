@@ -30,7 +30,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/og.png">
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/site.css?v=lab1">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 {extra}</head>
@@ -64,8 +64,8 @@ def footer():
   <div class="big" aria-hidden="true">1EYE</div>
   <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:18px" class="mono"><span>© <span data-year>2026</span> 1EYE · Built by Balaj</span><span>[ Open source · MIT ]</span></div>
 </div></footer>
-<script src="/iris.js" defer></script>
-<script src="/lab.js" defer></script>
+<script src="/iris.js?v=lab1" defer></script>
+<script src="/lab.js?v=lab1" defer></script>
 </body>
 </html>
 '''
