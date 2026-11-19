@@ -2,7 +2,7 @@
 
 *Effective 18 November 2026*
 
-The code is MIT-licensed and free to fork. The **1EYE** name, the "Telepathic Data Transfer" tagline and the eye-in-pyramid logo identify the official 1EYE project, so they have a few rules.
+The code is MIT-licensed and free to fork. The **1EYE** name, the "Telepathic Data Transfer" tagline and the macro human-eye logo identify the official 1EYE project, so they have a few rules.
 
 ## You can, without asking
 
@@ -20,6 +20,6 @@ The code is MIT-licensed and free to fork. The **1EYE** name, the "Telepathic Da
 ## Brand assets
 
 - Colours: violet `#8B5CF6`, lavender `#C4B5FD`, cyan `#67E8F9`, night `#050507`
-- Logo: [logo.svg](https://1eye.dpdns.org/logo.svg). Keep its proportions and colours, on a dark background, with space around it.
+- Logo: [icon-512.png](https://1eye.dpdns.org/icon-512.png). Keep its proportions and colours, on a dark background, with space around it.
 
 Questions or a request outside these rules: open an issue at [https://github.com/balajsajjad7-bot/1eye/issues](https://github.com/balajsajjad7-bot/1eye/issues).

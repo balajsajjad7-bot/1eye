@@ -1,11 +1,11 @@
 {
- "name": "1EYE \u2014 Telepathic Data Transfer",
+ "name": "1EYE \u2014 Open Source Lab",
  "short_name": "1EYE",
- "description": "AirDrop for Windows, Android, Mac and Linux. Free, no account.",
+ "description": "Free, open-source tools. First: Telepathic Data Transfer, AirDrop for Windows, Android, Mac and Linux.",
  "start_url": "/",
  "display": "standalone",
- "background_color": "#03020a",
- "theme_color": "#03020a",
+ "background_color": "#050505",
+ "theme_color": "#050505",
  "icons": [
   {
    "src": "/icon-192.png",

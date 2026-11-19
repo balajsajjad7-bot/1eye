@@ -39,3 +39,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ### Apache-2.0 (cloudflared, Android)
 
 Full text: [apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+## Website fonts
+
+- **Geist** (Vercel), SIL Open Font License 1.1 — https://github.com/vercel/geist-font
+- **Space Mono** (Colophon Foundry for Google Fonts), SIL Open Font License 1.1 — https://github.com/googlefonts/spacemono
