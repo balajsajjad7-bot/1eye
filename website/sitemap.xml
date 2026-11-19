@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://1eye.dpdns.org/</loc><changefreq>weekly</changefreq></url><url><loc>https://1eye.dpdns.org/legal.html</loc></url><url><loc>https://1eye.dpdns.org/terms.html</loc></url><url><loc>https://1eye.dpdns.org/privacy.html</loc></url><url><loc>https://1eye.dpdns.org/security.html</loc></url><url><loc>https://1eye.dpdns.org/copyright.html</loc></url><url><loc>https://1eye.dpdns.org/brand.html</loc></url><url><loc>https://1eye.dpdns.org/licenses.html</loc></url><url><loc>https://1eye.dpdns.org/code-signing.html</loc></url></urlset>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://1eye.dpdns.org/</loc><lastmod>2026-11-20</lastmod><priority>1.0</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/airdrop-for-windows.html</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/transfer-files-android-to-pc-without-usb.html</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/iphone-to-windows-file-transfer.html</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/send-large-files-phone-to-pc.html</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/access-pc-files-from-phone-anywhere.html</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/guides/share-files-without-internet.html</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://1eye.dpdns.org/legal.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/terms.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/privacy.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/security.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/copyright.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/brand.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/licenses.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+<url><loc>https://1eye.dpdns.org/code-signing.html</loc><lastmod>2026-11-20</lastmod><priority>0.3</priority></url>
+</urlset>

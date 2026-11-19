@@ -1,0 +1,7 @@
+# 1EYE — Telepathic Data Transfer
+> Free, open-source app (MIT) to send files, chat and links between your phone and PC over Wi-Fi or from anywhere. Works like AirDrop for Windows, Android, macOS and Linux; iPhone uses Safari. No account, no cloud, PIN-protected.
+
+- [Download](https://1eye.dpdns.org/#all): Windows .exe, Android .apk, macOS and Linux binaries
+- [Guides](https://1eye.dpdns.org/guides/): AirDrop for Windows, Android to PC without USB, iPhone to Windows, large files, remote access, offline transfer
+- [Privacy](https://1eye.dpdns.org/privacy.html) · [Terms](https://1eye.dpdns.org/terms.html)
+- [Source code](https://github.com/balajsajjad7-bot/1eye)

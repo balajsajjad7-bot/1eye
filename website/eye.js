@@ -1,6 +1,6 @@
 /* 1EYE — logo + interactive 3D particle engine (no libraries) */
 const LOGO = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
-<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2d9ff"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#67e8f9"/></linearGradient>
+<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2d9ff"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#78ffc4"/></linearGradient>
 <radialGradient id="ir" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#c4b5fd"/><stop offset="1" stop-color="#7c5cff"/></radialGradient></defs>
 <g stroke="url(#lg)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
 <path d="M50 5 L72.6 46 H27.4 Z"/>
@@ -15,7 +15,13 @@ const Eye = (() => {
   let cv, ctx, W = 0, H = 0, dpr = 1, raf = 0, t0 = performance.now();
   const P = [], STARS = [], DUST = [], FLOW = [], SAMPLE = [];
   let drop = 0, fx = null, fxc = null, eyeXY = [0, 0];
-  const V = [167, 139, 250], C = [103, 232, 249], WH = [236, 233, 255];
+  const V = [176, 150, 255], C = [120, 255, 196], WH = [236, 233, 255];
+  // performance: fewer particles on phones and small CPUs, and adapt at runtime if frames run long
+  const LOW = matchMedia("(max-width: 760px)").matches || (navigator.hardwareConcurrency || 8) <= 4;
+  const Q = LOW ? 0.45 : 1;
+  let stride = 1, ema = 16, slowFrames = 0, skip = 0, maxDpr = LOW ? 1 : 1.5;
+  const LUT = Array.from({ length: 24 }, (_, i) => { const c = [0, 1, 2].map(k => Math.round(V[k] + (C[k] - V[k]) * i / 23)); return `rgb(${c[0]},${c[1]},${c[2]})`; });
+  const lut = t => LUT[Math.max(0, Math.min(23, (t * 23) | 0))];
   let rotY = 0, rotX = -0.12, velY = 0.0022, tRX = -0.12, mx = 0, my = 0, smx = 0, smy = 0;
   let drag = null, pulse = 0, flowing = 0, blink = 1, nextBlink = 3000;
   let cx = 0.5, cy = 0.45, sc = 1, inten = 1; // live
@@ -51,27 +57,27 @@ const Eye = (() => {
       for (let e = 0; e < 4; e++) for (let i = 0; i < 34; i++) add(at(Q[e], Q[(e + 1) % 4], i / 34), "body", 0.35);
     }
     // face dust
-    for (let n = 0; n < 900; n++) {
+    for (let n = 0; n < 900 * Q; n++) {
       const f = n % 4, a = B[f], b = B[(f + 1) % 4];
       let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
       const p = [apex[0] + u * (a[0] - apex[0]) + v * (b[0] - apex[0]), apex[1] + u * (a[1] - apex[1]) + v * (b[1] - apex[1]), apex[2] + u * (a[2] - apex[2]) + v * (b[2] - apex[2])];
       if (p[1] > CUT0 && p[1] < CUT1) continue;
       add(p, p[1] >= CUT1 ? "cap" : "body", 0.18);
     }
-    for (let i = 0; i < 520; i++) {
+    for (let i = 0; i < 160 * Q; i++) {
       const th = Math.random() * 6.28, ph = Math.acos(rnd(-1, 1)), r = rnd(6, 14);
       STARS.push({ o: [r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)], b: rnd(0.15, 0.7), tw: Math.random() * 6.28 });
     }
     // orbit rings: a few tilted bands of particles spinning around the pyramid
-    const RINGS = [[2.15, 0.18, 0.0, 520], [2.75, -0.32, 1.2, 420], [3.4, 0.5, 2.3, 360], [1.75, -0.08, 0.6, 260]];
-    for (const [R, tilt, rot, n] of RINGS) for (let i = 0; i < n; i++)
+    const RINGS = [[2.15, 0.18, 0.0, 300], [2.75, -0.32, 1.2, 220], [3.4, 0.5, 2.3, 170], [1.75, -0.08, 0.6, 150]];
+    for (const [R, tilt, rot, n] of RINGS) for (let i = 0; i < n * Q; i++)
       DUST.push({ a: Math.random() * 6.28, r: R + rnd(-0.22, 0.22), y: rnd(-0.08, 0.08), tilt, rot, s: rnd(0.12, 0.4) * (R < 2.5 ? 1.25 : 0.8), b: rnd(0.2, 0.95) });
     // wide swirl that fills the page
-    for (let i = 0; i < 700; i++) DUST.push({ a: Math.random() * 6.28, r: rnd(3.6, 9), y: rnd(-2.6, 2.6), tilt: 0, rot: 0, s: rnd(0.03, 0.12), b: rnd(0.08, 0.45), far: 1 });
+    for (let i = 0; i < 260 * Q; i++) DUST.push({ a: Math.random() * 6.28, r: rnd(3.6, 9), y: rnd(-2.6, 2.6), tilt: 0, rot: 0, s: rnd(0.03, 0.12), b: rnd(0.08, 0.45), far: 1 });
   }
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     W = cv.clientWidth; H = cv.clientHeight;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   }
@@ -99,8 +105,12 @@ const Eye = (() => {
 
   function frame(now) {
     raf = requestAnimationFrame(frame);
-    const dt = Math.min(50, now - t0); t0 = now;
+    const raw = now - t0;
+    if (inten < 0.5 && (skip ^= 1)) return;            // half rate when the pyramid is just background
+    const dt = Math.min(50, raw); t0 = now;
     const t = now / 1000;
+    ema = ema * 0.95 + raw * 0.05;
+    if (ema > 24 && inten >= 0.5) { if (++slowFrames > 45) { slowFrames = 0; ema = 16; if (maxDpr > 1) { maxDpr = 1; resize(); } else if (stride < 3) stride++; } } else slowFrames = 0;
     updateAnchor();
     cx = lerp(cx, tcx, 0.06); cy = lerp(cy, tcy, 0.06); sc = lerp(sc, tsc, 0.06); inten = lerp(inten, tin, 0.05);
     smx = lerp(smx, mx, 0.06); smy = lerp(smy, my, 0.06);
@@ -122,47 +132,55 @@ const Eye = (() => {
       const [X, Y, f, Z] = proj(s.o[0], s.o[1], s.o[2], S * 0.5, ox + smx * 30 * dpr, oy + smy * 20 * dpr);
       if (f <= 0 || Z > 4.5) continue;
       const a = s.b * (0.55 + 0.45 * Math.sin(t * 1.3 + s.tw)) * (0.6 + 0.4 * I);
-      ctx.fillStyle = `rgba(200,195,255,${a * 0.6})`;
+      ctx.globalAlpha = a * 0.6; ctx.fillStyle = "rgb(200,195,255)";
       const z = dpr * 1.1;
       ctx.fillRect(X, Y, z, z);
     }
 
+    ctx.globalAlpha = 1;
     // aura behind capstone
     const capLift = 0.18 + Math.sin(t * 1.1) * 0.05 + pulse * 0.25;
     const ec = proj(0, 0.72 + capLift, 0, S, ox, oy);
     let g = ctx.createRadialGradient(ec[0], ec[1], 0, ec[0], ec[1], S * 1.6);
-    g.addColorStop(0, `rgba(139,92,246,${0.32 * I + pulse * 0.3})`); g.addColorStop(0.4, `rgba(103,232,249,${0.06 * I})`); g.addColorStop(1, "rgba(0,0,0,0)");
+    g.addColorStop(0, `rgba(139,92,246,${0.3 * I + pulse * 0.3})`); g.addColorStop(0.4, `rgba(120,255,196,${0.06 * I})`); g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
     // pyramid particles
     SAMPLE.length = 0;
-    for (const p of P) {
+    let last = "";
+    const off = stride > 1 ? (t * 60 | 0) % stride : 0;
+    for (let pi = off; pi < P.length; pi += stride) {
+      const p = P[pi];
       let [x, y, z] = p.o;
       if (p.kind === "cap") y += capLift;
       if (pulse > 0.01) { const k = pulse * 0.35 * p.r; x += x * k + Math.sin(p.j + t * 4) * k * 0.4; z += z * k; y += Math.cos(p.j) * k * 0.3; }
       const shimmer = 0.75 + 0.25 * Math.sin(t * 2.2 + p.j);
       const [X, Y, f] = proj(x, y, z, S, ox, oy);
       const depth = Math.max(0.25, Math.min(1.4, (f - 0.75) * 1.6));
-      const col = mix(V, C, Math.max(0, Math.min(1, (y + 1) / 2.6)));
-      const a = p.b * shimmer * depth * (0.45 + 0.55 * I);
-      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${a})`;
-      const z2 = (p.b > 0.5 ? 1.7 : 1.2) * dpr * f;
+      const cs = lut((y + 1) / 2.6);
+      if (cs !== last) { ctx.fillStyle = cs; last = cs; }
+      ctx.globalAlpha = Math.min(1, p.b * shimmer * depth * (0.45 + 0.55 * I));
+      const z2 = (p.b > 0.5 ? 1.7 : 1.2) * dpr * f * (stride > 1 ? 1.25 : 1);
       ctx.fillRect(X - z2 / 2, Y - z2 / 2, z2, z2);
       if (p.b > 0.5 && (p.j * 100 | 0) % 3 === 0) SAMPLE.push([X / dpr, Y / dpr]);
     }
 
     // orbit dust
-    for (const d of DUST) {
+    for (let di = 0; di < DUST.length; di++) {
+      const d = DUST[di];
       d.a += d.s * dt / 1000 * (1 + flowing * 2 + drop * 3);
+      if (stride > 1 && di % stride) continue;
       let x = Math.cos(d.a) * d.r, y = d.y - 0.25 + Math.sin(d.a * 3) * 0.05, z = Math.sin(d.a) * d.r;
       if (d.tilt) { const c = Math.cos(d.tilt), s_ = Math.sin(d.tilt), cr = Math.cos(d.rot), sr = Math.sin(d.rot); const y2 = y * c - z * s_, z2 = y * s_ + z * c; y = y2; z = z2; const x2 = x * cr - z * sr; z = x * sr + z * cr; x = x2; }
       const [X, Y, f] = proj(x, y, z, S, ox, oy);
       if (f <= 0) continue;
-      const col = mix(V, C, (Math.sin(d.a) + 1) / 2);
-      ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${Math.min(1, d.b * (d.far ? 0.75 : 1.25) * (0.45 + 0.55 * I) * Math.max(0.3, f - 0.35))})`;
+      const cs = lut((Math.sin(d.a) + 1) / 2);
+      if (cs !== last) { ctx.fillStyle = cs; last = cs; }
+      ctx.globalAlpha = Math.min(1, d.b * (d.far ? 0.75 : 1.25) * (0.45 + 0.55 * I) * Math.max(0.3, f - 0.35));
       const zz = (d.far ? 1.3 : 1.8) * dpr * f; ctx.fillRect(X, Y, zz, zz);
     }
 
+    ctx.globalAlpha = 1;
     // telepathic flow: particles rising into the eye
     if (flowing > 0 && FLOW.length < 260) for (let i = 0; i < 6; i++) FLOW.push({ x: rnd(-3, 3), y: -2.4, z: rnd(-1.5, 1.5), k: 0, s: rnd(0.5, 1.1) });
     for (let i = FLOW.length - 1; i >= 0; i--) {
