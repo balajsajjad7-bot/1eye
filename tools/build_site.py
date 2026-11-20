@@ -30,7 +30,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/og.png">
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=n3">
+<link rel="stylesheet" href="/site.css?v=n4">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 {extra}</head>
@@ -38,7 +38,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <div class="gridbg" aria-hidden="true"></div><canvas id="gridfx" aria-hidden="true"></canvas>
 '''
 
-NAVLINKS = [("/#projects", "Projects"), ("/data-transfer/", "Data transfer"), ("/shift/", "Shift"), ("/guides/", "Guides"), (GH, "GitHub")]
+NAVLINKS = [("/#projects", "Projects"), ("/data-transfer/", "Data transfer"), ("/shift/", "Shift"), ("/carbon/", "Carbon"), ("/guides/", "Guides"), (GH, "GitHub")]
 
 def header(loader=False):
     nav = "".join(f'<a href="{u}">{t}</a>' for u, t in NAVLINKS)
@@ -56,7 +56,7 @@ def header(loader=False):
 def footer():
     return f'''<footer><div class="wrap">
   <div class="cols">
-    <div><div class="mono" style="margin-bottom:10px">[ Lab ]</div><a href="/#projects">Projects</a><a href="/#manifesto">Manifesto</a><a href="/data-transfer/">Telepathic Data Transfer</a><a href="/shift/">Shift converter</a><a href="/guides/">Guides</a></div>
+    <div><div class="mono" style="margin-bottom:10px">[ Lab ]</div><a href="/#projects">Projects</a><a href="/#manifesto">Manifesto</a><a href="/data-transfer/">Telepathic Data Transfer</a><a href="/shift/">Shift converter</a><a href="/carbon/">Carbon AI</a><a href="/guides/">Guides</a></div>
     <div><div class="mono" style="margin-bottom:10px">[ Download ]</div><a href="/data-transfer/#download">Windows</a><a href="/data-transfer/#download">Android</a><a href="/data-transfer/#download">macOS</a><a href="/data-transfer/#download">Linux</a></div>
     <div><div class="mono" style="margin-bottom:10px">[ Elsewhere ]</div><a href="{GH}">GitHub</a><a href="{IG}">Instagram</a><a href="{GH}/issues">Propose a project</a></div>
     <div><div class="mono" style="margin-bottom:10px">[ Legal ]</div><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/security.html">Security</a><a href="/legal.html">All legal</a></div>
@@ -148,8 +148,11 @@ def home():
     <a class="prow" href="/shift/" data-r="2">
       <span class="mono">002</span><span class="nm">Shift</span><span class="mono cat">File converter · nothing uploaded</span><span class="mono pf">Any browser</span><span class="mono yr">2026</span><span class="st"><span class="pill"><i></i>Live</span></span>
     </a>
+    <a class="prow" href="/carbon/" data-r="3">
+      <span class="mono">003</span><span class="nm">Carbon</span><span class="mono cat">Open AI chat · uncensored 1.5B</span><span class="mono pf">Any browser</span><span class="mono yr">2026</span><span class="st"><span class="pill"><i></i>Live</span></span>
+    </a>
     <a class="prow" href="{GH}/issues" data-r="3">
-      <span class="mono">003</span><span class="nm muted">Your idea</span><span class="mono cat">Propose a tool on GitHub</span><span class="mono pf">Anyone</span><span class="mono yr">—</span><span class="st"><span class="pill">Propose →</span></span>
+      <span class="mono">004</span><span class="nm muted">Your idea</span><span class="mono cat">Propose a tool on GitHub</span><span class="mono pf">Anyone</span><span class="mono yr">—</span><span class="st"><span class="pill">Propose →</span></span>
     </a>
   </div>
   <div class="preview" aria-hidden="true"></div>
@@ -377,5 +380,28 @@ def shift():
     os.makedirs(os.path.join(W, "shift"), exist_ok=True)
     open(os.path.join(W, "shift", "index.html"), "w").write(p)
 
+CARBON_API = "https://REPLACE-carbon.hf.space"
+
+def carbon():
+    url = SITE + "/carbon/"
+    ld = {"@context": "https://schema.org", "@graph": [ORG_LD, {"@type": "WebApplication", "name": "1EYE Carbon", "url": url, "applicationCategory": "ChatApplication", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "description": "Free, open, uncensored AI chat by 1EYE, running Qwen2.5 1.5B abliterated. No account, chats stay in your browser."}]}
+    p = head("Carbon: Free Uncensored AI Chat, No Account · 1EYE", "Chat with Carbon, 1EYE's open and uncensored AI (Qwen2.5 1.5B). Free, no sign-up, no stored chats.", url, ld)
+    p += header()
+    p += f'''<main><section class="carbon-hero"><div class="wrap">
+  <div class="sechead"><div><span class="lbl rule">Project 003 · Carbon</span><h1 class="h-l" style="margin-top:18px">Carbon.<br><span class="muted">Ask anything.</span></h1></div>
+    <span class="mono">[ Qwen2.5 1.5B · abliterated ]</span></div>
+  <div class="chatwrap">
+    <div class="chatbar"><span class="mono" id="cstat">Connecting…</span><button class="btn sm" id="cnew" type="button">New chat</button></div>
+    <div class="log" id="log" aria-live="polite"></div>
+    <form class="ask" id="ask"><textarea id="q" rows="1" placeholder="Message Carbon…" aria-label="Message Carbon" maxlength="6000"></textarea><button class="btn" id="send" type="submit">Send</button></form>
+    <p class="fine">18+. Carbon is a small open model with its safety filters removed: it can be wrong, rude or offensive, so check anything important. Don't use it to hurt anyone. Chats stay in your browser and aren't stored on our engine. <a href="/terms.html">Terms</a></p>
+  </div>
+</div></section></main>
+<script>window.CARBON_API = "{CARBON_API}";</script>
+<script src="/shift/vendor/marked.umd.js" defer></script>'''
+    p += footer().replace("</body>", '<script src="/carbon/carbon.js?v=1" defer></script>\n</body>')
+    os.makedirs(os.path.join(W, "carbon"), exist_ok=True)
+    open(os.path.join(W, "carbon", "index.html"), "w").write(p)
+
 if __name__ == "__main__":
-    home(); product(); guides(); shift(); print("built")
+    home(); product(); guides(); shift(); carbon(); print("built")
