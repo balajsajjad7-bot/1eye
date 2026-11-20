@@ -157,25 +157,6 @@
 /terms
   Content-Type: text/html; charset=utf-8
 
-/downloads/1EYE.exe
-  Content-Type: application/vnd.microsoft.portable-executable
-
-
-/downloads/SHA256SUMS.txt
-  Content-Type: text/plain; charset=utf-8
-
-/downloads/1EYE-Linux-arm64
-  Content-Type: application/octet-stream
-
-/downloads/1EYE-Linux-x64
-  Content-Type: application/octet-stream
-
-/downloads/1EYE-macOS-AppleSilicon
-  Content-Type: application/octet-stream
-
-/downloads/1EYE-macOS-Intel
-  Content-Type: application/octet-stream
-
 /noir.js
   Content-Type: application/javascript; charset=utf-8
 
