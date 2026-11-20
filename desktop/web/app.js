@@ -430,6 +430,26 @@ function pDevices(main, soft) {
   $$("[data-kick]").forEach(b => b.onclick = () => confirm("Disconnect this device?") && api("/host/kick", { id: b.dataset.kick }));
 }
 
+// ======================================================= EYE ID (host)
+function eyeIDCard() {
+  const c = $("#eidcard"); if (!c) return;
+  const n = (S.host || {}).eyeid || 0, can = window.EyeID && EyeID.available();
+  const sig = n + "|" + can; if (c.dataset.sig === sig) return; c.dataset.sig = sig;
+  c.innerHTML = `<h3>${ICON.eye.replace("<svg", '<svg width="16" height="16"')} Eye ID <span class="pill ${n ? "host" : ""}" style="margin-left:auto">${n ? "On" : "Off"}</span></h3>
+    <div class="muted" style="font-size:12.5px;margin-bottom:10px">${n
+      ? "Your devices can unlock 1EYE with your face instead of the PIN. Only face numbers are stored on this PC, never a photo. The PIN still works."
+      : "Unlock 1EYE with your face, like Face ID. Scan once here; then other devices just look at their camera and blink."}</div>
+    ${can ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${n
+      ? `<button class="btn sm" id="eidre">Scan again</button><button class="btn sm danger" id="eidrm">Turn off</button>`
+      : `<button class="btn glow sm" id="eidon">Set up Eye ID</button>`}</div>`
+      : `<div class="muted" style="font-size:12px">This screen has no camera access. Open the Control panel on the host computer itself (or allow the camera) to set up Eye ID.</div>`}
+    <div class="muted" style="font-size:11.5px;margin-top:10px">Webcam face match, not a depth sensor: a clear photo could fool it, so it asks for a blink and locks out after 5 misses. Turn it off if you share this PC.</div>`;
+  const go = async () => { const r = await EyeID.enrol(); if (r.ok) toast("Eye ID is on"); else if (r.err) toast(r.err); };
+  if ($("#eidon")) $("#eidon").onclick = go;
+  if ($("#eidre")) $("#eidre").onclick = go;
+  if ($("#eidrm")) $("#eidrm").onclick = async () => { if (confirm("Turn off Eye ID? Devices will need the PIN.")) { await api("/host/eyeid", { clear: true }); toast("Eye ID off"); } };
+}
+
 // ======================================================= CONTROL (host)
 function pControl(main, soft) {
   const h = S.host || {};
@@ -451,6 +471,7 @@ function pControl(main, soft) {
             <div class="pinbig gtext" id="pin"></div>
             <div style="display:flex;gap:8px;justify-content:center"><button class="btn sm" onclick="copy(S.host.pin)">${ICON.copy} Copy</button>
             <button class="btn sm" onclick="confirm('New PIN? Every device will be signed out.')&&api('/host/pin')">New PIN</button></div></div>
+          <div class="glass card" id="eidcard"></div>
           <div class="glass card"><h3>${ICON.edit.replace("<svg", '<svg width="16" height="16"')} Host name</h3>
             <div style="display:flex;gap:8px"><input class="input" id="hn" maxlength="30"><button class="btn" onclick="api('/host/rename',{name:$('#hn').value}).then(()=>toast('Renamed'))">Save</button></div></div>
           <div class="glass card" id="aicard"></div>
@@ -466,6 +487,7 @@ function pControl(main, soft) {
     $("#hn").value = S.hostName || "";
     $("#fd").textContent = h.folder || "";
   }
+  eyeIDCard();
   $("#sw").classList.toggle("on", accessMode === "wifi");
   $("#sn").classList.toggle("on", accessMode === "net");
   if ($("#sd")) $("#sd").classList.toggle("on", accessMode === "domain");

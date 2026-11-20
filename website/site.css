@@ -205,3 +205,9 @@ footer .big{font-size:clamp(90px,38vw,720px);line-height:.78;letter-spacing:-.07
 .js [data-r].in{opacity:1;transform:none}
 .js [data-r="2"]{transition-delay:.08s}.js [data-r="3"]{transition-delay:.16s}.js [data-r="4"]{transition-delay:.24s}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}.js [data-r]{opacity:1;transform:none}}
+/* camera tracking */
+.cam{display:block;margin:0 0 6px auto;background:none;border:0;color:var(--ink);font:inherit;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;padding:6px 0}
+.cam:hover{color:var(--acc)}.cam.on{color:#ff5b4d}.cam:disabled{opacity:.6;cursor:wait}
+.camnote{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--dim);margin:0 0 14px;max-width:240px;margin-left:auto}
+.camv{position:absolute;right:12px;bottom:12px;width:min(22%,120px);aspect-ratio:4/3;object-fit:cover;transform:scaleX(-1);filter:grayscale(1) contrast(1.1);opacity:.75;border:1px solid var(--line2);z-index:2}
+@media(max-width:760px),(max-aspect-ratio:5/4){.cam{margin:0 0 6px}.camnote{margin-left:0}}

@@ -38,9 +38,18 @@ void main(){
   sc*=mix(.75,1.,smoothstep(0.,.08,uv.y-yl));
   sc*=1.-smoothstep(.5,1.,abs(x))*.7;
   /* faint veins */
-  float vn=pow(1.-abs(fbm(vec3(uv*vec2(5.,9.),7.))*2.-1.),26.)*smoothstep(.45,.95,abs(x));
-  sc-=vn*.08;
   vec3 col=vec3(sc);
+  /* red veins: thin branching capillaries that crawl in from the corners toward the iris */
+  vec2 vw=uv+.18*vec2(fbm(vec3(uv*3.,11.)),fbm(vec3(uv*3.,17.)))-.09;
+  float v1=pow(1.-abs(fbm(vec3(vw*vec2(4.,7.),7.))*2.-1.),26.);
+  float v2=pow(1.-abs(fbm(vec3(vw*vec2(9.,15.),3.))*2.-1.),46.)*.8;
+  float v3=pow(1.-abs(fbm(vec3(vw*vec2(18.,26.),5.))*2.-1.),60.)*.55;
+  float reach=smoothstep(.08,.9,abs(x));          /* dense in the corners, fading toward the iris */
+  float vn=clamp((v1+v2*smoothstep(.3,1.,abs(x))+v3*smoothstep(.55,1.,abs(x)))*reach,0.,1.);
+  vn*=.55+.45*smoothstep(.0,.1,uv.y-yl);           /* a few more along the lower lid */
+  vec3 blood=vec3(.62,.07,.06)*(.55+.6*sc);
+  col=mix(col,blood,min(1.,vn*1.05));
+  col+=vec3(.05,-.01,-.01)*reach*.6;               /* faint pink flush in the corners */
   /* iris: almost black, with a dim radial grain and a slightly lighter limbal edge */
   float a=atan(q.y,q.x);
   float fib=fbm(vec3(cos(a)*18.,sin(a)*18.,r*9.));
@@ -60,7 +69,7 @@ void main(){
   /* caruncle: the fleshy bump in the inner corner */
   vec2 cu=uv-vec2(W*.98,.02);
   float car=exp(-dot(cu*vec2(1.,1.4),cu*vec2(1.,1.4))*90.);
-  col=mix(col,vec3(.36),car*.7);
+  col=mix(col,vec3(.46,.24,.22),car*.75);
   col*=inside;
   /* ---------- lids and skin ---------- */
   float skin=.035+.05*fbm(vec3(uv*3.,2.))+.025*(n3(vec3(uv*90.,1.))-.5);
@@ -107,8 +116,8 @@ void main(){
   vec2 fn=(gl_FragCoord.xy-.5*R)/(.5*R);
   float edge=(1.-smoothstep(.7,.98,abs(fn.x)))*(1.-smoothstep(.7,.98,abs(fn.y)));
   col=mix(vec3(0.),col,edge*edge);
-  float o=pow(max(col.r,0.),.95);
-  gl_FragColor=vec4(vec3(.0196+o*(1.-.0196)),1.);   /* never darker than the page */
+  vec3 o=pow(max(col,0.),vec3(.95));
+  gl_FragColor=vec4(.0196+o*(1.-.0196),1.);       /* never darker than the page */
 }`;
 
   function make(canvas, opts = {}) {
@@ -183,6 +192,8 @@ void main(){
       dilate(v) { pupil = v; },
       zoom(v) { zoom = v; },
       look(x, y) { tx = x; ty = y; },
+      track(x, y) { tx = Math.max(-1, Math.min(1, x)); ty = Math.max(-1, Math.min(1, y)); lastPointer = clock(); },
+      blink() { if (blinkT < 0) blinkT = 0; },
       tick(dtSec, now) { step(dtSec, now); render(now); },
       snapshot() { render(clock()); return canvas.toDataURL("image/png"); },
     };

@@ -160,8 +160,6 @@
 /downloads/1EYE.exe
   Content-Type: application/vnd.microsoft.portable-executable
 
-/downloads/1EYE.apk
-  Content-Type: application/vnd.android.package-archive
 
 /downloads/SHA256SUMS.txt
   Content-Type: text/plain; charset=utf-8
@@ -180,3 +178,24 @@
 
 /noir.js
   Content-Type: application/javascript; charset=utf-8
+
+/eyecam.js
+  Content-Type: application/javascript; charset=utf-8
+
+/vendor/face-api.js
+  Content-Type: application/javascript; charset=utf-8
+
+/vendor/face-api.LICENSE.txt
+  Content-Type: text/plain; charset=utf-8
+
+/vendor/models/tiny_face_detector_model-weights_manifest.json
+  Content-Type: application/json
+
+/vendor/models/face_landmark_68_tiny_model-weights_manifest.json
+  Content-Type: application/json
+
+/vendor/models/tiny_face_detector_model.bin
+  Content-Type: application/octet-stream
+
+/vendor/models/face_landmark_68_tiny_model.bin
+  Content-Type: application/octet-stream

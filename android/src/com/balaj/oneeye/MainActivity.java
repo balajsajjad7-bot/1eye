@@ -18,6 +18,7 @@ import android.provider.OpenableColumns;
 import android.view.View;
 import android.view.Window;
 import android.webkit.DownloadListener;
+import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -41,6 +42,8 @@ public class MainActivity extends Activity {
     static final int REQ_FILES = 7, REQ_NOTIF = 8;
 
     private WebView web;
+    private PermissionRequest camReq;
+    private static final int REQ_CAM = 77;
     private ValueCallback<Uri[]> fileCb;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private boolean loaded = false;
@@ -85,6 +88,23 @@ public class MainActivity extends Activity {
         });
 
         web.setWebChromeClient(new WebChromeClient() {
+            // Eye ID: let the 1EYE page (and only it) use the front camera, after Android's own prompt
+            @Override
+            public void onPermissionRequest(final PermissionRequest req) {
+                ui.post(new Runnable() { public void run() {
+                    String o = String.valueOf(req.getOrigin());
+                    boolean ours = o.startsWith("http://127.0.0.1") || o.startsWith("http://localhost");
+                    boolean wantsCam = false;
+                    for (String r : req.getResources()) if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) wantsCam = true;
+                    if (!ours || !wantsCam) { req.deny(); return; }
+                    if (Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                        req.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                    } else {
+                        camReq = req;
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAM);
+                    }
+                }});
+            }
             @Override
             public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 if (fileCb != null) fileCb.onReceiveValue(null);
@@ -282,6 +302,15 @@ public class MainActivity extends Activity {
         String base = dot > 0 ? name.substring(0, dot) : name, ext = dot > 0 ? name.substring(dot) : "";
         for (int i = 1; f.exists(); i++) f = new File(dir, base + " (" + i + ")" + ext);
         return f;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int req, String[] perms, int[] res) {
+        if (req == REQ_CAM && camReq != null) {
+            if (res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED) camReq.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+            else camReq.deny();
+            camReq = null;
+        }
     }
 
     @Override

@@ -16,11 +16,14 @@
     <div class="pins" id="pins"></div>
     <input class="input" id="name" placeholder="Name this device (optional)" maxlength="30" style="text-align:center">
     <button class="btn glow" style="width:100%;height:46px;margin-top:14px;font-size:14px" id="go">Open the eye</button>
+    <button class="eidbtn" type="button" id="eid" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M12 10v3.5h-1M9.5 16.5a4 4 0 0 0 5 0"/></svg>Unlock with Eye ID</button>
+    <div class="eidhint" id="eidhint" hidden></div>
     <div class="gerr" id="err"></div>
     <div class="gfoot">Made by Balaj</div>
   </form>
 </div>
 <script src="/assets/eye.js"></script>
+<script src="/assets/eyeid.js"></script>
 <script>
 document.getElementById('logo').innerHTML = LOGO;
 Eye.init(document.getElementById('space'));
@@ -59,5 +62,20 @@ async function submit(e) {
   boxes.forEach(b => b.value = ''); boxes[0].focus(); Eye.blink();
 }
 card.onsubmit = submit;
+// Eye ID: offered when the host has enrolled a face. Cameras only work on https or on the host itself.
+fetch('/api/eyeid').then(r => r.json()).then(st => {
+  if (!st.on) return;
+  const b = document.getElementById('eid'), h = document.getElementById('eidhint');
+  if (!EyeID.available()) { h.hidden = false; h.textContent = 'Eye ID is on. It works on the Anywhere (https) link or on the host computer; on Wi-Fi links use the PIN.'; return; }
+  b.hidden = false; setTimeout(place, 30);
+  b.onclick = async () => {
+    const name = document.getElementById('name').value.trim();
+    try { localStorage.setItem('1eye-name', name) } catch (_) {}
+    const r = await EyeID.signIn(name);
+    if (r.ok) { Eye.pulse(1.3); Eye.flow(1.2); setTimeout(() => location.reload(), 450); }
+    else if (r.err) { document.getElementById('err').textContent = r.err; Eye.blink(); }
+  };
+  EyeID.init().catch(() => {});   // warm up the models while they look at the screen
+}).catch(() => {});
 </script>
 </body></html>

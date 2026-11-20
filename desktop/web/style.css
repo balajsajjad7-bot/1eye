@@ -336,3 +336,25 @@ textarea.input{height:auto;padding:12px 14px;resize:none}
 .prov small{color:var(--muted);font-size:11.5px}
 .prov:hover,.prov.on{border-color:rgba(var(--v-rgb),.55);background:rgba(var(--v-rgb),.08);transform:translateY(-1px)}
 .cform{display:grid;gap:8px;margin-bottom:10px;padding:14px;border-radius:14px;background:rgba(var(--fg-rgb),.03);border:1px solid var(--line)}
+/* ---------- Eye ID ---------- */
+.eidov{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(var(--bg-rgb),.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:eidin .3s ease}
+.eidov.out{opacity:0;transition:opacity .3s}
+@keyframes eidin{from{opacity:0}}
+.eidbox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px;text-align:center;max-width:360px}
+.eidlbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.eidcam{position:relative;width:min(64vw,240px);aspect-ratio:1}
+.eidcam video{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:cover;border-radius:50%;transform:scaleX(-1);background:#000}
+.eidcam svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.eidcam circle{fill:none;stroke-width:2.2}
+.eidtrack{stroke:var(--line2)}
+.eidring{stroke:var(--v);stroke-dasharray:100;stroke-dashoffset:100;stroke-linecap:round;transition:stroke-dashoffset .35s ease,stroke .3s}
+.eidov[data-state=ok] .eidring{stroke:var(--ok)}.eidov[data-state=warn] .eidring{stroke:var(--bad)}
+.eidov[data-state=blink] .eidcam video{box-shadow:0 0 0 2px var(--v)}
+.eidmsg{font-size:17px;color:var(--ink);min-height:24px}
+.eidov[data-state=warn] .eidmsg{color:var(--bad)}.eidov[data-state=ok] .eidmsg{color:var(--ok)}
+.eidsub{font-size:12px;color:var(--dim)}
+.eidbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;margin-top:10px;border-radius:12px;border:1px solid var(--line2);background:var(--glass);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.eidbtn:hover{background:var(--glass2);border-color:var(--v)}
+.eidbtn svg{width:18px;height:18px}
+.eidhint{font-size:11.5px;color:var(--dim);margin-top:8px}
+.eidbtn[hidden],.eidhint[hidden]{display:none}

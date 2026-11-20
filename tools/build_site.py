@@ -30,7 +30,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/og.png">
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=n1">
+<link rel="stylesheet" href="/site.css?v=n2">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 {extra}</head>
@@ -64,8 +64,8 @@ def footer():
   <div class="big" aria-hidden="true">1EYE</div>
   <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:18px" class="mono"><span>© <span data-year>2026</span> 1EYE · Built by Balaj</span><span>[ Open source · MIT ]</span></div>
 </div></footer>
-<script src="/noir.js?v=n1" defer></script>
-<script src="/lab.js?v=n1" defer></script>
+<script src="/noir.js?v=n2" defer></script>
+<script src="/lab.js?v=n2" defer></script>\n<script src="/eyecam.js?v=1" defer></script>
 </body>
 </html>
 '''
@@ -74,12 +74,12 @@ WIN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path
 def downloads(anchor_id="download"):
     return f'''<div id="{anchor_id}">
   <div class="dls">
-    <a class="dl" data-os="win" href="/downloads/1EYE.exe" download="1EYE.exe"><span class="mono">[ Windows 10 / 11 ]</span><b>1EYE.exe</b><span class="mono">8 MB · no install</span></a>
-    <a class="dl" data-os="apk" href="/downloads/1EYE.apk" download="1EYE.apk"><span class="mono">[ Android 8+ ]</span><b>1EYE.apk</b><span class="mono">12 MB · can host too</span></a>
-    <a class="dl" data-os="mac" href="/downloads/1EYE-macOS-AppleSilicon" download="1EYE-macOS-AppleSilicon"><span class="mono">[ macOS · M1–M4 ]</span><b>Apple Silicon</b><span class="mono">8 MB</span></a>
-    <a class="dl" href="/downloads/1EYE-macOS-Intel" download="1EYE-macOS-Intel"><span class="mono">[ macOS · Intel ]</span><b>Intel Mac</b><span class="mono">8 MB</span></a>
-    <a class="dl" data-os="linux" href="/downloads/1EYE-Linux-x64" download="1EYE-Linux-x64"><span class="mono">[ Linux · x64 ]</span><b>Linux x64</b><span class="mono">8 MB</span></a>
-    <a class="dl" href="/downloads/1EYE-Linux-arm64" download="1EYE-Linux-arm64"><span class="mono">[ Linux · ARM64 ]</span><b>Raspberry Pi</b><span class="mono">8 MB</span></a>
+    <a class="dl" data-os="win" href="/downloads/1EYE.exe" download="1EYE.exe"><span class="mono">[ Windows 10 / 11 ]</span><b>1EYE.exe</b><span class="mono">16 MB · no install</span></a>
+    <a class="dl" data-os="apk" href="/downloads/1EYE.apk" download="1EYE.apk"><span class="mono">[ Android 8+ ]</span><b>1EYE.apk</b><span class="mono">32 MB · can host too</span></a>
+    <a class="dl" data-os="mac" href="/downloads/1EYE-macOS-AppleSilicon" download="1EYE-macOS-AppleSilicon"><span class="mono">[ macOS · M1–M4 ]</span><b>Apple Silicon</b><span class="mono">16 MB</span></a>
+    <a class="dl" href="/downloads/1EYE-macOS-Intel" download="1EYE-macOS-Intel"><span class="mono">[ macOS · Intel ]</span><b>Intel Mac</b><span class="mono">16 MB</span></a>
+    <a class="dl" data-os="linux" href="/downloads/1EYE-Linux-x64" download="1EYE-Linux-x64"><span class="mono">[ Linux · x64 ]</span><b>Linux x64</b><span class="mono">16 MB</span></a>
+    <a class="dl" href="/downloads/1EYE-Linux-arm64" download="1EYE-Linux-arm64"><span class="mono">[ Linux · ARM64 ]</span><b>Raspberry Pi</b><span class="mono">16 MB</span></a>
   </div>
   <code class="cmd" data-copy title="Click to copy">cd ~/Downloads && chmod +x 1EYE-macOS-* && xattr -c 1EYE-macOS-* && ./1EYE-macOS-*</code>
   <code class="cmd" data-copy title="Click to copy">cd ~/Downloads && chmod +x 1EYE-Linux-* && ./1EYE-Linux-*</code>
@@ -103,7 +103,7 @@ def faq_ld(items):
 
 APP_LD = {"@type": "SoftwareApplication", "@id": SITE + "/data-transfer/#app", "name": "1EYE Telepathic Data Transfer", "alternateName": ["1EYE", "AirDrop for Windows"],
   "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "File transfer", "operatingSystem": "Windows 10, Windows 11, Android 8+, macOS 11+, Linux",
-  "softwareVersion": "1.8", "fileSize": "8MB", "downloadUrl": SITE + "/data-transfer/#download", "url": SITE + "/data-transfer/", "image": SITE + "/og.png",
+  "softwareVersion": "1.9", "fileSize": "16MB", "downloadUrl": SITE + "/data-transfer/#download", "url": SITE + "/data-transfer/", "image": SITE + "/og.png",
   "description": "Send files, chat and links between your phone and computer over Wi-Fi or from anywhere. One file, no account, no cloud. Free and open source.",
   "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": True,
   "author": {"@id": SITE + "/#org"}, "publisher": {"@id": SITE + "/#org"}}
@@ -124,10 +124,11 @@ def home():
     <div class="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <span class="readout ro1">[ Macro 1:1 ]</span><span class="readout ro2" id="ro-pupil">Pupil 2.8 mm</span>
     <span class="readout ro3" id="ro-gaze">Gaze +0.00 / +0.00</span><span class="readout ro4">[ Live · WebGL ]</span>
+    <video id="camv" class="camv" playsinline muted hidden aria-hidden="true"></video>
   </div>
   <h1 class="ttl">One eye.<br>Open<br>source.</h1>
   <div class="copy" data-r><span class="lbl rule">Est. 2026</span><p>An open-source lab building the tools we need ourselves, and giving them away. Free. No accounts. Nothing hidden.</p></div>
-  <div class="side" data-r="2"><a class="mono" href="#projects" data-scramble>[ Scroll to see ]</a></div>
+  <div class="side" data-r="2"><button class="mono cam" id="cam" type="button">[ Let it see you ]</button><small class="camnote" id="camnote">Uses your camera. Stays on your device.</small><a class="mono" href="#projects" data-scramble>[ Scroll to see ]</a></div>
 </section>
 
 <section id="manifesto" class="manifesto"><div class="wrap">
@@ -142,7 +143,7 @@ def home():
   <div class="sechead"><div><span class="lbl rule">Projects</span><h2 class="h-l" style="margin-top:18px" data-r>The index.</h2></div><span class="mono">[ 02 / 04 ]</span></div>
   <div class="plist">
     <a class="prow" href="/data-transfer/" data-preview="/media/telepathic.jpg" data-r>
-      <span class="mono">001</span><span class="nm">Telepathic Data Transfer</span><span class="mono cat">File transfer · AirDrop for everyone</span><span class="mono pf">Win · Android · macOS · Linux</span><span class="mono yr">2026</span><span class="st"><span class="pill"><i></i>Live v1.8</span></span>
+      <span class="mono">001</span><span class="nm">Telepathic Data Transfer</span><span class="mono cat">File transfer · AirDrop for everyone</span><span class="mono pf">Win · Android · macOS · Linux</span><span class="mono yr">2026</span><span class="st"><span class="pill"><i></i>Live v1.9</span></span>
     </a>
     <div class="prow" data-r="2">
       <span class="mono">002</span><span class="nm muted">[ Redacted ]</span><span class="mono cat">In development</span><span class="mono pf">—</span><span class="mono yr">2027</span><span class="st"><span class="pill" style="color:var(--muted)">Soon</span></span>
@@ -172,7 +173,7 @@ def home():
   <div class="stats">
     <div data-r><b>04</b><span class="mono">Platforms + any browser</span></div>
     <div data-r="2"><b>00</b><span class="mono">Accounts, ads, trackers</span></div>
-    <div data-r="3"><b>8MB</b><span class="mono">One file, no install</span></div>
+    <div data-r="3"><b>16MB</b><span class="mono">One file, no install</span></div>
     <div data-r="4"><b>MIT</b><span class="mono">Open source licence</span></div>
   </div>
 </div></section>
@@ -211,7 +212,7 @@ def product():
              ("Free cloud", "Connect Google Drive or WebDAV storage. Public links that work when your computer is off."),
              ("1EYE AI", "Ask about your files, chat and links, or type @eye in chat. Runs on your own free Groq key."),
              ("Phone as a server", "The Android app can host too. Share straight from Gallery into 1EYE."),
-             ("Eight themes", "From pitch black to light. The interface works on any screen, from phone to TV.")]
+             ("Eye ID", "Unlock with your face instead of the PIN. Look, blink, you're in. Face data stays on your computer, never a photo.")]
     cards = "".join(f'<div class="card" data-r="{i % 3 + 1}"><span class="mono">{i + 1:02d}</span><h3>{esc(t)}</h3><p>{esc(d)}</p></div>' for i, (t, d) in enumerate(feats))
     steps = [("Open 1EYE", "Double-click on Windows, Mac or Linux, or tap the app on Android. It shows a QR code and a PIN."),
              ("Scan the eye", "Point any phone camera at the QR code, enter the PIN and name the device."),
@@ -223,7 +224,7 @@ def product():
   <div class="eyewrap" style="width:min(70vh,70svh,86vw)">
     <canvas id="eye" data-zoom=".7" aria-hidden="true"></canvas>
     <div class="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    <span class="readout ro1">[ Project 001 ]</span><span class="readout ro2">[ v1.8 · Live ]</span><span class="readout ro3" id="ro-gaze">Gaze +0.00 / +0.00</span><span class="readout ro4" id="ro-pupil">Pupil 2.8 mm</span>
+    <span class="readout ro1">[ Project 001 ]</span><span class="readout ro2">[ v1.9 · Live ]</span><span class="readout ro3" id="ro-gaze">Gaze +0.00 / +0.00</span><span class="readout ro4" id="ro-pupil">Pupil 2.8 mm</span>
   </div>
   <h1 class="ttl">Drop<br>anything.<br><span class="muted">It just<br>arrives.</span></h1>
   <div class="copy" data-r><span class="lbl rule">Telepathic Data Transfer</span><p>AirDrop for Windows, Android, Mac and Linux. Files, photos, chat and links between your phone and computer, over Wi-Fi or from anywhere. Free, open source, no account.</p></div>

@@ -32,7 +32,7 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-const version = "1.8"
+const version = "1.9"
 
 //go:embed web/*
 var webFS embed.FS
@@ -79,14 +79,15 @@ type savedDev struct {
 }
 
 type saved struct {
-	Chat    []Msg      `json:"chat"`
-	Links   []Link     `json:"links"`
-	Devices []savedDev `json:"devices"`
-	Pin     string     `json:"pin"`
-	Perm    permConf   `json:"permanent"`
-	Host    string     `json:"hostName,omitempty"`
-	AI      aiConf     `json:"ai"`
-	Cloud   cloudConf  `json:"cloud"`
+	Chat    []Msg       `json:"chat"`
+	Links   []Link      `json:"links"`
+	Devices []savedDev  `json:"devices"`
+	Pin     string      `json:"pin"`
+	Perm    permConf    `json:"permanent"`
+	Host    string      `json:"hostName,omitempty"`
+	AI      aiConf      `json:"ai"`
+	Cloud   cloudConf   `json:"cloud"`
+	EyeID   [][]float32 `json:"eyeId,omitempty"`
 }
 
 // ---------------------------------------------------------------- state
@@ -151,7 +152,7 @@ func save() { // mu held
 	for t, d := range devices {
 		ds = append(ds, savedDev{t, *d})
 	}
-	b, _ := json.MarshalIndent(saved{chat, links, ds, pin, perm, savedHostName, ai, cloud}, "", " ")
+	b, _ := json.MarshalIndent(saved{chat, links, ds, pin, perm, savedHostName, ai, cloud, eyeIDs}, "", " ")
 	tmp := filepath.Join(dataDir, "data.json.tmp")
 	if os.WriteFile(tmp, b, 0600) == nil {
 		os.Rename(tmp, filepath.Join(dataDir, "data.json"))
@@ -178,6 +179,7 @@ func load() {
 		ai = s.AI
 		cloud = s.Cloud
 		savedHostName = s.Host
+		eyeIDs = s.EyeID
 	}
 }
 
@@ -548,7 +550,10 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(405)
 		return
 	}
-	var in struct{ Pin, Name string }
+	var in struct {
+		Pin, Name string
+		Face      []float64
+	}
 	if readJSON(r, &in) != nil {
 		w.WriteHeader(400)
 		return
@@ -571,14 +576,20 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	byFace := strings.TrimSpace(in.Pin) == "" && in.Face != nil
 	mu.Lock()
-	ok := subtle.ConstantTimeCompare([]byte(strings.TrimSpace(in.Pin)), []byte(pin)) == 1
+	var ok bool
+	if byFace {
+		ok = len(eyeIDs) > 0 && validDesc(in.Face) && eyeIDDistance(in.Face) < eyeIDThreshold
+	} else {
+		ok = subtle.ConstantTimeCompare([]byte(strings.TrimSpace(in.Pin)), []byte(pin)) == 1
+	}
 	mu.Unlock()
 	if !ok {
 		f[0]++
 		if f[0] >= 5 {
 			f[1] = time.Now().Add(5 * time.Minute).Unix()
-			logf("BLOCKED  %s for 5 min (wrong PIN ×5)", ip)
+			logf("BLOCKED  %s for 5 min (5 failed sign-ins)", ip)
 		}
 		mu.Lock()
 		if viaNet(r) {
@@ -595,7 +606,12 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		fails[ip] = f
 		mu.Unlock()
 		time.Sleep(time.Second)
-		writeJSON(w, map[string]any{"ok": false, "err": "Wrong PIN"})
+		if byFace {
+			logf("EYE ID  face not recognised from %s", ip)
+			writeJSON(w, map[string]any{"ok": false, "err": "Face not recognised. Use the PIN instead."})
+		} else {
+			writeJSON(w, map[string]any{"ok": false, "err": "Wrong PIN"})
+		}
 		return
 	}
 	name := strings.TrimSpace(in.Name)
@@ -613,7 +629,11 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	save()
 	bump()
 	mu.Unlock()
-	logf("JOINED  %s via %s (%s)", name, d.Via, ip)
+	how := ""
+	if byFace {
+		how = " with Eye ID"
+	}
+	logf("JOINED  %s via %s (%s)%s", name, d.Via, ip, how)
 	http.SetCookie(w, &http.Cookie{Name: "eye", Value: tok, Path: "/", HttpOnly: true, MaxAge: 2592000, SameSite: http.SameSiteLaxMode,
 		Secure: isPublic(r) || r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")})
 	writeJSON(w, map[string]any{"ok": true})
@@ -692,7 +712,7 @@ func handleSync(w http.ResponseWriter, r *http.Request) {
 		}
 		out["host"] = map[string]any{
 			"wifi": fmt.Sprintf("http://%s:%d", lanIP(), port), "public": publicURL, "online": tunStop != nil || wantOn,
-			"busy": tunBusy, "status": tunStatus, "provider": provider, "platform": platformName(), "perm": ps, "pubPort": pubPort, "pin": pin, "log": l, "folder": sharedDir,
+			"busy": tunBusy, "status": tunStatus, "provider": provider, "platform": platformName(), "perm": ps, "pubPort": pubPort, "pin": pin, "eyeid": len(eyeIDs), "log": l, "folder": sharedDir,
 		}
 	}
 	mu.Unlock()
@@ -990,6 +1010,9 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 			bump()
 			mu.Unlock()
 		}
+	case "eyeid":
+		handleHostEyeID(w, r)
+		return
 	case "ai":
 		handleHostAI(w, r)
 		return
@@ -1098,6 +1121,7 @@ func main() {
 	}))
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "1eye "+version) })
 	mux.HandleFunc("/api/login", handleLogin)
+	mux.HandleFunc("/api/eyeid", handleEyeIDStatus)
 	mux.HandleFunc("/api/logout", handleLogout)
 	mux.HandleFunc("/api/rename", handleSelfRename)
 	mux.HandleFunc("/api/ai", handleAI)
@@ -1174,7 +1198,7 @@ func guard(h http.Handler) http.Handler {
 		hd.Set("X-Frame-Options", "SAMEORIGIN") // DENY broke the in-app PDF preview
 		hd.Set("X-Content-Type-Options", "nosniff")
 		hd.Set("Referrer-Policy", "no-referrer")
-		hd.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+		hd.Set("Permissions-Policy", "camera=(self), microphone=(), geolocation=(), payment=()") // camera: Eye ID
 		if !strings.HasPrefix(r.URL.Path, "/f/") {
 			hd.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'")
 		}

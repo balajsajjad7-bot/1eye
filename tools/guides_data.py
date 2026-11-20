@@ -10,7 +10,7 @@ guide('airdrop-for-windows','AirDrop for Windows: Free Way to Share Files Betwee
 <h2>What you need</h2>
 <ul><li>A Windows 10 or 11 PC</li><li>A phone (Android or iPhone) on the same Wi-Fi, or any internet connection if you use Anywhere mode</li><li>About one minute</li></ul>
 <h2>Set it up in three steps</h2>
-<ol><li><b>Download 1EYE for Windows.</b> It's a single 8 MB file, <code>1EYE.exe</code>, from <a href="/#all">the download page</a>. There is nothing to install.</li>
+<ol><li><b>Download 1EYE for Windows.</b> It's a single 16 MB file, <code>1EYE.exe</code>, from <a href="/#all">the download page</a>. There is nothing to install.</li>
 <li><b>Open it.</b> If Windows shows "Windows protected your PC", click <b>More info → Run anyway</b>; 1EYE is open source but not code-signed yet. Your browser opens the 1EYE control panel with a QR code and a 6-digit PIN.</li>
 <li><b>Scan the QR code with your phone.</b> Enter the PIN and name the phone. Done: anything you drop on either screen appears on the other.</li></ol>
 <h2>What you can send</h2>
