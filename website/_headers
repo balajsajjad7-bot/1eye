@@ -224,3 +224,12 @@
 
 /shift/vendor/ffmpeg/814.ffmpeg.js
   Content-Type: application/javascript; charset=utf-8
+
+/carbon/
+  Content-Type: text/html; charset=utf-8
+
+/carbon/index.html
+  Content-Type: text/html; charset=utf-8
+
+/carbon/carbon.js
+  Content-Type: application/javascript; charset=utf-8
