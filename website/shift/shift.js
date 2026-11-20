@@ -4,7 +4,7 @@
 (() => {
   const $ = s => document.querySelector(s);
   const V = "/shift/vendor/";
-  const FF_CORE = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/";
+  const FF_CORE = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/";
   const loaded = {};
   const script = src => loaded[src] || (loaded[src] = new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("Couldn't load " + src)); document.head.appendChild(s); }));
   const ext = n => (n.split(".").pop() || "").toLowerCase();
