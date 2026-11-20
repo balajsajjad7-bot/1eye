@@ -180,3 +180,49 @@
 
 /vendor/models/face_landmark_68_tiny_model.bin
   Content-Type: application/octet-stream
+
+
+/shift/
+  Content-Type: text/html; charset=utf-8
+
+/shift/index.html
+  Content-Type: text/html; charset=utf-8
+
+/shift/shift.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/marked.umd.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/heic2any.min.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/xlsx.full.min.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/fflate.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/pdf-lib.min.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/mammoth.browser.min.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/js-yaml.mjs
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/pdfjs/pdf.worker.min.mjs
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/pdfjs/pdf.min.mjs
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/ffmpeg/util.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/ffmpeg/ffmpeg.js
+  Content-Type: application/javascript; charset=utf-8
+
+/shift/vendor/ffmpeg/814.ffmpeg.js
+  Content-Type: application/javascript; charset=utf-8

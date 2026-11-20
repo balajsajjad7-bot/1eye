@@ -30,7 +30,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/og.png">
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=n2">
+<link rel="stylesheet" href="/site.css?v=n3">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 {extra}</head>
@@ -38,7 +38,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <div class="gridbg" aria-hidden="true"></div><canvas id="gridfx" aria-hidden="true"></canvas>
 '''
 
-NAVLINKS = [("/#projects", "Projects"), ("/#manifesto", "Manifesto"), ("/data-transfer/", "Data transfer"), ("/guides/", "Guides"), (GH, "GitHub")]
+NAVLINKS = [("/#projects", "Projects"), ("/data-transfer/", "Data transfer"), ("/shift/", "Shift"), ("/guides/", "Guides"), (GH, "GitHub")]
 
 def header(loader=False):
     nav = "".join(f'<a href="{u}">{t}</a>' for u, t in NAVLINKS)
@@ -56,7 +56,7 @@ def header(loader=False):
 def footer():
     return f'''<footer><div class="wrap">
   <div class="cols">
-    <div><div class="mono" style="margin-bottom:10px">[ Lab ]</div><a href="/#projects">Projects</a><a href="/#manifesto">Manifesto</a><a href="/data-transfer/">Telepathic Data Transfer</a><a href="/guides/">Guides</a></div>
+    <div><div class="mono" style="margin-bottom:10px">[ Lab ]</div><a href="/#projects">Projects</a><a href="/#manifesto">Manifesto</a><a href="/data-transfer/">Telepathic Data Transfer</a><a href="/shift/">Shift converter</a><a href="/guides/">Guides</a></div>
     <div><div class="mono" style="margin-bottom:10px">[ Download ]</div><a href="/data-transfer/#download">Windows</a><a href="/data-transfer/#download">Android</a><a href="/data-transfer/#download">macOS</a><a href="/data-transfer/#download">Linux</a></div>
     <div><div class="mono" style="margin-bottom:10px">[ Elsewhere ]</div><a href="{GH}">GitHub</a><a href="{IG}">Instagram</a><a href="{GH}/issues">Propose a project</a></div>
     <div><div class="mono" style="margin-bottom:10px">[ Legal ]</div><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/security.html">Security</a><a href="/legal.html">All legal</a></div>
@@ -145,9 +145,9 @@ def home():
     <a class="prow" href="/data-transfer/" data-preview="/media/telepathic.jpg" data-r>
       <span class="mono">001</span><span class="nm">Telepathic Data Transfer</span><span class="mono cat">File transfer · AirDrop for everyone</span><span class="mono pf">Win · Android · macOS · Linux</span><span class="mono yr">2026</span><span class="st"><span class="pill"><i></i>Live v1.9</span></span>
     </a>
-    <div class="prow" data-r="2">
-      <span class="mono">002</span><span class="nm muted">[ Redacted ]</span><span class="mono cat">In development</span><span class="mono pf">—</span><span class="mono yr">2027</span><span class="st"><span class="pill" style="color:var(--muted)">Soon</span></span>
-    </div>
+    <a class="prow" href="/shift/" data-r="2">
+      <span class="mono">002</span><span class="nm">Shift</span><span class="mono cat">File converter · nothing uploaded</span><span class="mono pf">Any browser</span><span class="mono yr">2026</span><span class="st"><span class="pill"><i></i>Live</span></span>
+    </a>
     <a class="prow" href="{GH}/issues" data-r="3">
       <span class="mono">003</span><span class="nm muted">Your idea</span><span class="mono cat">Propose a tool on GitHub</span><span class="mono pf">Anyone</span><span class="mono yr">—</span><span class="st"><span class="pill">Propose →</span></span>
     </a>
@@ -315,5 +315,67 @@ def guides():
     p += footer()
     open(os.path.join(W, "guides", "index.html"), "w").write(p)
 
+SHIFT_FAQ = [
+    ("Are my files uploaded anywhere?", "No. Shift converts everything inside your browser, on your own device. Files never leave your computer or phone, so it works for private documents too."),
+    ("Which formats does Shift convert?", "Images (JPG, PNG, WebP, HEIC, GIF, SVG, BMP, AVIF, ICO) to JPG, PNG, WebP, PDF or ICO. PDF to images or text, and merging PDFs. Video (MP4, MOV, WebM, MKV, AVI) to MP4, WebM, GIF or audio. Audio (MP3, WAV, M4A, OGG, FLAC) to each other. Data (CSV, JSON, XLSX, YAML) to each other. Documents (DOCX, Markdown, text, HTML) to PDF, HTML, text or Markdown."),
+    ("Is there a file size limit?", "Only your device's memory. Images, PDFs and documents convert in seconds. Video and audio use ffmpeg compiled for the browser: the first video conversion downloads the engine (about 31 MB) once, and files up to about 1.5 GB work on most computers."),
+    ("Is Shift free?", "Yes. Free, no account, no watermark, no limits, open source. It is a 1EYE project, the open source lab behind Telepathic Data Transfer."),
+    ("How do I convert HEIC photos from my iPhone to JPG?", "Drop the HEIC files on Shift, choose JPG and press Convert. You can convert many at once and download them all as a ZIP."),
+]
+
+def shift():
+    url = SITE + "/shift/"
+    ld = {"@context": "https://schema.org", "@graph": [ORG_LD,
+          {"@type": "WebApplication", "name": "1EYE Shift", "url": url, "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)",
+           "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "description": "Free file converter that runs in your browser. Convert images, HEIC, PDF, video, audio, spreadsheets and documents without uploading them."},
+          faq_ld(SHIFT_FAQ)]}
+    p = head("Shift: Free File Converter, Nothing Uploaded · HEIC to JPG, PDF, MP4, MP3 · 1EYE",
+             "Convert images, HEIC, PDF, video, audio, CSV, Excel and Word files instantly in your browser. Free, no account, no upload: your files never leave your device.", url, ld)
+    p += header()
+    p += f'''<main>
+<section class="shift-hero"><div class="wrap">
+  <div class="sechead"><div><span class="lbl rule">Project 002 · Shift</span>
+    <h1 class="h-xl" style="margin-top:18px">Any file.<br><span class="muted">Any format.</span></h1></div><span class="mono">[ Nothing uploaded ]</span></div>
+  <p class="lead" style="max-width:640px">Drop files, pick a format, done. Shift converts everything inside your browser, so your files never leave this device. Free, no account, no watermark.</p>
+
+  <div class="shift">
+    <label class="dz" id="drop" for="pick">
+      <input type="file" id="pick" multiple hidden>
+      <div class="dz-in"><span class="mono">[ 01 ]</span><b>Drop files here</b><span class="muted">or click to choose · paste works too</span></div>
+      <ul class="q" id="queue"></ul>
+    </label>
+    <div class="panel dim" id="step2">
+      <span class="mono">[ 02 ] Convert to</span>
+      <div class="chips" id="targets"><span class="muted">Add files to see the formats you can turn them into.</span></div>
+      <div class="opts" id="opts"></div>
+      <button class="btn" id="go" disabled>Convert</button>
+      <div class="status mono" id="status"></div>
+      <ul class="q res" id="results"></ul>
+      <button class="btn sm" id="zipall" hidden>Download all as ZIP</button>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sechead"><span class="lbl rule">Formats</span><span class="mono">[ 06 families ]</span></div>
+  <div class="cards">
+    <div class="card"><span class="mono">Images</span><h3>HEIC, JPG, PNG, WebP, GIF, SVG</h3><p>To JPG, PNG, WebP, PDF or a multi-size ICO. Resize and set quality. Many images become one PDF.</p></div>
+    <div class="card"><span class="mono">PDF</span><h3>Pages to images, text out</h3><p>Every page as a sharp PNG or JPG, extract the text, or merge several PDFs into one.</p></div>
+    <div class="card"><span class="mono">Video</span><h3>MP4, MOV, WebM, MKV, AVI</h3><p>To MP4 or WebM, a looping GIF, or pull the audio out as MP3, WAV or M4A.</p></div>
+    <div class="card"><span class="mono">Audio</span><h3>MP3, WAV, M4A, OGG, FLAC</h3><p>Any to any, at good quality settings, without leaving the page.</p></div>
+    <div class="card"><span class="mono">Data</span><h3>CSV, Excel, JSON, YAML</h3><p>Spreadsheets to JSON and back, YAML for configs, or an HTML table.</p></div>
+    <div class="card"><span class="mono">Docs</span><h3>Word, Markdown, text, HTML</h3><p>DOCX to HTML, text or Markdown; Markdown or text to PDF.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sechead"><span class="lbl rule">Questions</span><span class="mono">[ FAQ ]</span></div>
+  <div class="faq">{faq_html(SHIFT_FAQ)}</div>
+</div></section>
+</main>'''
+    p += footer().replace("</body>", '<script src="/shift/shift.js?v=1" defer></script>\n</body>')
+    os.makedirs(os.path.join(W, "shift"), exist_ok=True)
+    open(os.path.join(W, "shift", "index.html"), "w").write(p)
+
 if __name__ == "__main__":
-    home(); product(); guides(); print("built")
+    home(); product(); guides(); shift(); print("built")

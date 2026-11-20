@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<title>Shift: Free File Converter, Nothing Uploaded · HEIC to JPG, PDF, MP4, MP3 · 1EYE</title>
+<meta name="description" content="Convert images, HEIC, PDF, video, audio, CSV, Excel and Word files instantly in your browser. Free, no account, no upload: your files never leave your device.">
+<link rel="canonical" href="https://1eye.dpdns.org/shift/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:site_name" content="1EYE"><meta property="og:type" content="website">
+<meta property="og:title" content="Shift: Free File Converter, Nothing Uploaded · HEIC to JPG, PDF, MP4, MP3 · 1EYE"><meta property="og:description" content="Convert images, HEIC, PDF, video, audio, CSV, Excel and Word files instantly in your browser. Free, no account, no upload: your files never leave your device.">
+<meta property="og:url" content="https://1eye.dpdns.org/shift/"><meta property="og:image" content="https://1eye.dpdns.org/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://1eye.dpdns.org/og.png">
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site.css?v=n3">
+<script>document.documentElement.classList.add("js")</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://1eye.dpdns.org/#org", "name": "1EYE", "alternateName": "1EYE Open Source Lab", "url": "https://1eye.dpdns.org/", "logo": "https://1eye.dpdns.org/icon-512.png", "description": "An open-source lab that builds free tools people need: no accounts, no tracking.", "founder": {"@type": "Person", "name": "Balaj"}, "sameAs": ["https://github.com/balajsajjad7-bot/1eye", "https://www.instagram.com/1eye.app/"]}, {"@type": "WebApplication", "name": "1EYE Shift", "url": "https://1eye.dpdns.org/shift/", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "description": "Free file converter that runs in your browser. Convert images, HEIC, PDF, video, audio, spreadsheets and documents without uploading them."}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Are my files uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "No. Shift converts everything inside your browser, on your own device. Files never leave your computer or phone, so it works for private documents too."}}, {"@type": "Question", "name": "Which formats does Shift convert?", "acceptedAnswer": {"@type": "Answer", "text": "Images (JPG, PNG, WebP, HEIC, GIF, SVG, BMP, AVIF, ICO) to JPG, PNG, WebP, PDF or ICO. PDF to images or text, and merging PDFs. Video (MP4, MOV, WebM, MKV, AVI) to MP4, WebM, GIF or audio. Audio (MP3, WAV, M4A, OGG, FLAC) to each other. Data (CSV, JSON, XLSX, YAML) to each other. Documents (DOCX, Markdown, text, HTML) to PDF, HTML, text or Markdown."}}, {"@type": "Question", "name": "Is there a file size limit?", "acceptedAnswer": {"@type": "Answer", "text": "Only your device's memory. Images, PDFs and documents convert in seconds. Video and audio use ffmpeg compiled for the browser: the first video conversion downloads the engine (about 31 MB) once, and files up to about 1.5 GB work on most computers."}}, {"@type": "Question", "name": "Is Shift free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Free, no account, no watermark, no limits, open source. It is a 1EYE project, the open source lab behind Telepathic Data Transfer."}}, {"@type": "Question", "name": "How do I convert HEIC photos from my iPhone to JPG?", "acceptedAnswer": {"@type": "Answer", "text": "Drop the HEIC files on Shift, choose JPG and press Convert. You can convert many at once and download them all as a ZIP."}}]}]}</script>
+</head>
+<body>
+<div class="gridbg" aria-hidden="true"></div><canvas id="gridfx" aria-hidden="true"></canvas>
+
+<header class="hdr">
+  <a class="brand" href="/" aria-label="1EYE home"><b><img src="/favicon.png" alt="" width="22" height="22">1EYE</b><span class="lbl rule">Open source lab</span></a>
+  <nav class="nav" aria-label="Main"><a href="/#projects">Projects</a><a href="/data-transfer/">Data transfer</a><a href="/shift/">Shift</a><a href="/guides/">Guides</a><a href="https://github.com/balajsajjad7-bot/1eye">GitHub</a></nav>
+  <button class="menu-btn" data-menu aria-label="Open menu">[ Menu ]</button>
+</header>
+<div class="sheet" aria-label="Menu"><button class="x mono" data-menu>[ Close ]</button><div class="mono" style="margin-bottom:18px">[ Index ]</div><a class="big" href="/#projects">Projects</a><a class="big" href="/data-transfer/">Data transfer</a><a class="big" href="/shift/">Shift</a><a class="big" href="/guides/">Guides</a><a class="big" href="https://github.com/balajsajjad7-bot/1eye">GitHub</a><a class="big" href="https://www.instagram.com/1eye.app/">Instagram</a></div>
+<main>
+<section class="shift-hero"><div class="wrap">
+  <div class="sechead"><div><span class="lbl rule">Project 002 · Shift</span>
+    <h1 class="h-xl" style="margin-top:18px">Any file.<br><span class="muted">Any format.</span></h1></div><span class="mono">[ Nothing uploaded ]</span></div>
+  <p class="lead" style="max-width:640px">Drop files, pick a format, done. Shift converts everything inside your browser, so your files never leave this device. Free, no account, no watermark.</p>
+
+  <div class="shift">
+    <label class="dz" id="drop" for="pick">
+      <input type="file" id="pick" multiple hidden>
+      <div class="dz-in"><span class="mono">[ 01 ]</span><b>Drop files here</b><span class="muted">or click to choose · paste works too</span></div>
+      <ul class="q" id="queue"></ul>
+    </label>
+    <div class="panel dim" id="step2">
+      <span class="mono">[ 02 ] Convert to</span>
+      <div class="chips" id="targets"><span class="muted">Add files to see the formats you can turn them into.</span></div>
+      <div class="opts" id="opts"></div>
+      <button class="btn" id="go" disabled>Convert</button>
+      <div class="status mono" id="status"></div>
+      <ul class="q res" id="results"></ul>
+      <button class="btn sm" id="zipall" hidden>Download all as ZIP</button>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sechead"><span class="lbl rule">Formats</span><span class="mono">[ 06 families ]</span></div>
+  <div class="cards">
+    <div class="card"><span class="mono">Images</span><h3>HEIC, JPG, PNG, WebP, GIF, SVG</h3><p>To JPG, PNG, WebP, PDF or a multi-size ICO. Resize and set quality. Many images become one PDF.</p></div>
+    <div class="card"><span class="mono">PDF</span><h3>Pages to images, text out</h3><p>Every page as a sharp PNG or JPG, extract the text, or merge several PDFs into one.</p></div>
+    <div class="card"><span class="mono">Video</span><h3>MP4, MOV, WebM, MKV, AVI</h3><p>To MP4 or WebM, a looping GIF, or pull the audio out as MP3, WAV or M4A.</p></div>
+    <div class="card"><span class="mono">Audio</span><h3>MP3, WAV, M4A, OGG, FLAC</h3><p>Any to any, at good quality settings, without leaving the page.</p></div>
+    <div class="card"><span class="mono">Data</span><h3>CSV, Excel, JSON, YAML</h3><p>Spreadsheets to JSON and back, YAML for configs, or an HTML table.</p></div>
+    <div class="card"><span class="mono">Docs</span><h3>Word, Markdown, text, HTML</h3><p>DOCX to HTML, text or Markdown; Markdown or text to PDF.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sechead"><span class="lbl rule">Questions</span><span class="mono">[ FAQ ]</span></div>
+  <div class="faq"><details><summary>Are my files uploaded anywhere?</summary><p>No. Shift converts everything inside your browser, on your own device. Files never leave your computer or phone, so it works for private documents too.</p></details><details><summary>Which formats does Shift convert?</summary><p>Images (JPG, PNG, WebP, HEIC, GIF, SVG, BMP, AVIF, ICO) to JPG, PNG, WebP, PDF or ICO. PDF to images or text, and merging PDFs. Video (MP4, MOV, WebM, MKV, AVI) to MP4, WebM, GIF or audio. Audio (MP3, WAV, M4A, OGG, FLAC) to each other. Data (CSV, JSON, XLSX, YAML) to each other. Documents (DOCX, Markdown, text, HTML) to PDF, HTML, text or Markdown.</p></details><details><summary>Is there a file size limit?</summary><p>Only your device&#x27;s memory. Images, PDFs and documents convert in seconds. Video and audio use ffmpeg compiled for the browser: the first video conversion downloads the engine (about 31 MB) once, and files up to about 1.5 GB work on most computers.</p></details><details><summary>Is Shift free?</summary><p>Yes. Free, no account, no watermark, no limits, open source. It is a 1EYE project, the open source lab behind Telepathic Data Transfer.</p></details><details><summary>How do I convert HEIC photos from my iPhone to JPG?</summary><p>Drop the HEIC files on Shift, choose JPG and press Convert. You can convert many at once and download them all as a ZIP.</p></details></div>
+</div></section>
+</main><footer><div class="wrap">
+  <div class="cols">
+    <div><div class="mono" style="margin-bottom:10px">[ Lab ]</div><a href="/#projects">Projects</a><a href="/#manifesto">Manifesto</a><a href="/data-transfer/">Telepathic Data Transfer</a><a href="/shift/">Shift converter</a><a href="/guides/">Guides</a></div>
+    <div><div class="mono" style="margin-bottom:10px">[ Download ]</div><a href="/data-transfer/#download">Windows</a><a href="/data-transfer/#download">Android</a><a href="/data-transfer/#download">macOS</a><a href="/data-transfer/#download">Linux</a></div>
+    <div><div class="mono" style="margin-bottom:10px">[ Elsewhere ]</div><a href="https://github.com/balajsajjad7-bot/1eye">GitHub</a><a href="https://www.instagram.com/1eye.app/">Instagram</a><a href="https://github.com/balajsajjad7-bot/1eye/issues">Propose a project</a></div>
+    <div><div class="mono" style="margin-bottom:10px">[ Legal ]</div><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/security.html">Security</a><a href="/legal.html">All legal</a></div>
+  </div>
+  <div class="big" aria-hidden="true">1EYE</div>
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:18px" class="mono"><span>© <span data-year>2026</span> 1EYE · Built by Balaj</span><span>[ Open source · MIT ]</span></div>
+</div></footer>
+<script src="/noir.js?v=n2" defer></script>
+<script src="/lab.js?v=n2" defer></script>
+<script src="/eyecam.js?v=1" defer></script>
+<script src="/shift/shift.js?v=1" defer></script>
+</body>
+</html>

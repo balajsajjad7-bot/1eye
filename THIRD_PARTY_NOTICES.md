@@ -48,3 +48,7 @@ Full text: [apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LIC
 ## Face detection and Eye ID
 
 - **face-api** by Vladimir Mandic (includes TensorFlow.js), MIT License — https://github.com/vladmandic/face-api. Bundled with the 1EYE app (Eye ID) and used on the website (camera tracking), with its tiny face detector, 68-point tiny landmark and face recognition models.
+
+## Shift converter (website)
+
+pdf-lib (MIT), PDF.js (Apache-2.0), heic2any (MIT), SheetJS xlsx 0.18.5 (Apache-2.0), js-yaml (MIT), mammoth (BSD-2-Clause), marked (MIT), fflate (MIT), @ffmpeg/ffmpeg and @ffmpeg/util (MIT). The ffmpeg core (@ffmpeg/core, GPL-2.0-or-later / LGPL) is not redistributed here; browsers load it from unpkg.com on first audio/video conversion.
