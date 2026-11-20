@@ -4,7 +4,7 @@
 (() => {
   const $ = s => document.querySelector(s);
   const V = "/shift/vendor/";
-  const FF_CORE = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/";
+  const FF_CORE = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/";
   const loaded = {};
   const script = src => loaded[src] || (loaded[src] = new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("Couldn't load " + src)); document.head.appendChild(s); }));
   const ext = n => (n.split(".").pop() || "").toLowerCase();
@@ -180,7 +180,7 @@
     const blobURL = async (u, type) => { const r = await fetch(u); if (!r.ok) throw new Error("Couldn't download the video engine"); return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type })); };
     const f = new FFmpegWASM.FFmpeg();
     f.on("progress", ({ progress }) => { if (progress > 0 && progress <= 1) status(`Converting… ${Math.round(progress * 100)}%`); });
-    await f.load({ coreURL: await blobURL(FF_CORE + "ffmpeg-core.js", "text/javascript"), wasmURL: await blobURL(FF_CORE + "ffmpeg-core.wasm", "application/wasm"), classWorkerURL: new URL(V + "ffmpeg/814.ffmpeg.js", location.href).href });
+    await f.load({ coreURL: await blobURL(FF_CORE + "ffmpeg-core.js", "text/javascript"), wasmURL: await blobURL(FF_CORE + "ffmpeg-core.wasm", "application/wasm") });
     return ff = f;
   }
   const ARGS = {
