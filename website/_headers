@@ -177,3 +177,6 @@
 
 /downloads/1EYE-macOS-Intel
   Content-Type: application/octet-stream
+
+/noir.js
+  Content-Type: application/javascript; charset=utf-8

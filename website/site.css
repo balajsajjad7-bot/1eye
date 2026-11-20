@@ -70,8 +70,8 @@ section{position:relative;padding:clamp(80px,13vw,180px) 0 0}
 /* ---------- hero eye ---------- */
 .hero{position:relative;min-height:100vh;min-height:100svh;display:grid;place-items:center;overflow:hidden;padding:0}
 .eyewrap{position:relative;width:min(76vh,76svh,92vw);aspect-ratio:1;max-width:980px}
-.eyewrap canvas{width:100%;height:100%}
-.eyewrap canvas.noeye{background:radial-gradient(circle,#050505 0 12%,#6b5a2c 13%,#2f5249 26%,#0e1714 34%,#050505 50%)}
+.eyewrap canvas{width:100%;height:100%;mix-blend-mode:screen}
+.eyewrap canvas.noeye{background:radial-gradient(ellipse 48% 22%,#cfcfcf 0 30%,#111 31% 52%,#9a9a9a 53% 70%,#050505 100%)}
 .vf{position:absolute;inset:-14px;pointer-events:none}
 .vf i{position:absolute;width:22px;height:22px;border:1px solid var(--line2)}
 .vf i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}.vf i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
@@ -97,7 +97,7 @@ section{position:relative;padding:clamp(80px,13vw,180px) 0 0}
   .hero .ttl,.hero .copy,.hero .side{position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none;text-align:left;margin:0 0 10px;max-width:none}
   .hero .ttl{font-size:clamp(34px,6vw,56px)}
   .hero .ttl{grid-column:2}.hero .copy{grid-column:2}.hero .side{grid-column:2}
-  .ro1,.ro2{display:none}
+  .ro1,.ro2,.ro3,.ro4{display:none}
 }
 
 /* ---------- manifesto ---------- */

@@ -65,8 +65,9 @@
 
   // ---- the eye ----
   const eyeC = $("#eye");
-  if (eyeC && window.Iris) {
-    const E = Iris.make(eyeC, { follow: true, zoom: +(eyeC.dataset.zoom || .8) });
+  const EyeLib = window.Noir || window.Iris;
+  if (eyeC && EyeLib) {
+    const E = EyeLib.make(eyeC, { follow: true, zoom: +(eyeC.dataset.zoom || .9) });
     window.EYE = E;
     const ro = $("#ro-pupil"), rg = $("#ro-gaze");
     if (E && (ro || rg)) {

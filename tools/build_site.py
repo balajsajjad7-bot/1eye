@@ -30,7 +30,7 @@ def head(title, desc, url, ld, extra="", ogtype="website"):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/og.png">
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=lab1">
+<link rel="stylesheet" href="/site.css?v=n1">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 {extra}</head>
@@ -64,8 +64,8 @@ def footer():
   <div class="big" aria-hidden="true">1EYE</div>
   <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:18px" class="mono"><span>© <span data-year>2026</span> 1EYE · Built by Balaj</span><span>[ Open source · MIT ]</span></div>
 </div></footer>
-<script src="/iris.js?v=lab1" defer></script>
-<script src="/lab.js?v=lab1" defer></script>
+<script src="/noir.js?v=n1" defer></script>
+<script src="/lab.js?v=n1" defer></script>
 </body>
 </html>
 '''
@@ -120,7 +120,7 @@ def home():
     p += f'''<main>
 <section class="hero" aria-label="1EYE">
   <div class="eyewrap">
-    <canvas id="eye" data-zoom=".8" aria-label="A close-up of a human eye that follows your cursor" role="img"></canvas>
+    <canvas id="eye" data-zoom=".74" aria-label="A black-and-white close-up of a human eye that glances around and follows your cursor" role="img"></canvas>
     <div class="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <span class="readout ro1">[ Macro 1:1 ]</span><span class="readout ro2" id="ro-pupil">Pupil 2.8 mm</span>
     <span class="readout ro3" id="ro-gaze">Gaze +0.00 / +0.00</span><span class="readout ro4">[ Live · WebGL ]</span>
@@ -221,7 +221,7 @@ def product():
     p += f'''<main>
 <section class="hero" aria-label="Telepathic Data Transfer">
   <div class="eyewrap" style="width:min(70vh,70svh,86vw)">
-    <canvas id="eye" data-zoom=".72" aria-hidden="true"></canvas>
+    <canvas id="eye" data-zoom=".7" aria-hidden="true"></canvas>
     <div class="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <span class="readout ro1">[ Project 001 ]</span><span class="readout ro2">[ v1.8 · Live ]</span><span class="readout ro3" id="ro-gaze">Gaze +0.00 / +0.00</span><span class="readout ro4" id="ro-pupil">Pupil 2.8 mm</span>
   </div>
