@@ -5,14 +5,20 @@ on Balaj's PC (where @1eye.app is signed in). Instagram blocks pasting files fro
 or reel is generated inside the Instagram page with `noir.min.js` + `igkit.min.js`.
 
 ## Which item
-`index = (today's date in Asia/Karachi − calendar.start) in days`, wrapped with `% items.length`
-(after the last item, start over). Item 0 (the first reel) was published on 2026-11-20 by hand.
+The routine runs twice a day (about 12:47 and 19:47 Asia/Karachi). `perDay` in calendar.json is 2.
+- `days = (today's date in Asia/Karachi − calendar.start)` in days
+- `slot = 0` if the current Asia/Karachi hour is before 16:00, otherwise `1`
+- `index = (days * perDay + slot) % items.length` (after the last item, start over)
+If `days` is negative (before start), post nothing and report that.
+History: the old 12-item calendar's first reel was posted 2026-11-20; the 20-item hook calendar starts 2026-11-21.
 
 ## Steps
 1. Load the built-in-browser skill. Open (or reuse) a tab at `https://www.instagram.com/1eye.app/`.
    Check the page shows the 1eye.app profile with **Edit profile** (signed in as 1eye.app). If it asks to
    log in, or shows a checkpoint or "suspicious activity", STOP and report: never type passwords or codes.
-2. Check the latest post's caption on the profile is not already this item's caption (no double posts).
+2. Check that none of the 3 latest posts on the profile already has this item's caption (read the
+   `img` alt text of the post links; photo posts often get an auto alt like "Photo by 1EYE…", so for those
+   open the post and read its caption with get_page_text, then go back to the profile). If one does, it's already posted: STOP and report (no double posts).
 3. Paste the full contents of `noir.min.js` with javascript_tool, then the full contents of `igkit.min.js`
    (two separate calls, each file verbatim). Verify: `typeof Noir.make==="function" && typeof IGKit.reel==="function"`.
    If the content didn't paste completely, paste it again; do not try to fetch it (Instagram's CSP blocks fetch).
