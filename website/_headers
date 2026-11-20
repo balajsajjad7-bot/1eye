@@ -218,8 +218,6 @@
 /shift/vendor/pdfjs/pdf.min.mjs
   Content-Type: application/javascript; charset=utf-8
 
-/shift/vendor/ffmpeg/util.js
-  Content-Type: application/javascript; charset=utf-8
 
 /shift/vendor/ffmpeg/ffmpeg.js
   Content-Type: application/javascript; charset=utf-8

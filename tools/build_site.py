@@ -373,7 +373,7 @@ def shift():
   <div class="faq">{faq_html(SHIFT_FAQ)}</div>
 </div></section>
 </main>'''
-    p += footer().replace("</body>", '<script src="/shift/shift.js?v=1" defer></script>\n</body>')
+    p += footer().replace("</body>", '<script src="/shift/shift.js?v=2" defer></script>\n</body>')
     os.makedirs(os.path.join(W, "shift"), exist_ok=True)
     open(os.path.join(W, "shift", "index.html"), "w").write(p)
 

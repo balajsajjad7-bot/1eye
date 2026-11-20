@@ -176,10 +176,11 @@
   async function ffmpeg() {
     if (ff) return ff;
     status("Loading the video engine (about 31 MB, once)…");
-    await script(V + "ffmpeg/ffmpeg.js"); await script(V + "ffmpeg/util.js");
+    await script(V + "ffmpeg/ffmpeg.js");
+    const blobURL = async (u, type) => { const r = await fetch(u); if (!r.ok) throw new Error("Couldn't download the video engine"); return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type })); };
     const f = new FFmpegWASM.FFmpeg();
     f.on("progress", ({ progress }) => { if (progress > 0 && progress <= 1) status(`Converting… ${Math.round(progress * 100)}%`); });
-    await f.load({ coreURL: await FFmpegUtil.toBlobURL(FF_CORE + "ffmpeg-core.js", "text/javascript"), wasmURL: await FFmpegUtil.toBlobURL(FF_CORE + "ffmpeg-core.wasm", "application/wasm"), classWorkerURL: new URL(V + "ffmpeg/814.ffmpeg.js", location.href).href });
+    await f.load({ coreURL: await blobURL(FF_CORE + "ffmpeg-core.js", "text/javascript"), wasmURL: await blobURL(FF_CORE + "ffmpeg-core.wasm", "application/wasm"), classWorkerURL: new URL(V + "ffmpeg/814.ffmpeg.js", location.href).href });
     return ff = f;
   }
   const ARGS = {
