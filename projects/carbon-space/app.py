@@ -25,6 +25,8 @@ app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["GET", 
 hits: dict[str, deque] = defaultdict(deque)
 
 def visitor(req: Request) -> str:
+    cf = req.headers.get("cf-connecting-ip")
+    if cf: return cf.strip()
     fwd = req.headers.get("x-forwarded-for", "")
     return fwd.split(",")[0].strip() or (req.client.host if req.client else "?")
 

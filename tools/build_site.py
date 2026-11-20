@@ -380,7 +380,7 @@ def shift():
     os.makedirs(os.path.join(W, "shift"), exist_ok=True)
     open(os.path.join(W, "shift", "index.html"), "w").write(p)
 
-CARBON_API = "https://REPLACE-carbon.hf.space"
+CARBON_API = "https://carbon.1eye.dpdns.org"
 
 def carbon():
     url = SITE + "/carbon/"

@@ -1,7 +1,7 @@
 /* 1EYE Carbon — chat with Carbon (Qwen2.5 1.5B abliterated) running on 1EYE's cloud engine.
    Chats live only in this browser (localStorage); the engine stores nothing. */
 (() => {
-  const API = window.CARBON_API || "https://REPLACE-carbon.hf.space";
+  const API = window.CARBON_API || "https://carbon.1eye.dpdns.org";
   const $ = s => document.querySelector(s);
   const log = $("#log"), form = $("#ask"), box = $("#q"), send = $("#send"), stat = $("#cstat");
   const KEY = "1eye-carbon-chat";
